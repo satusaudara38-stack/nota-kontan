@@ -10,6 +10,24 @@ if [ -n "$PORT" ]; then
     sed -i "s/<VirtualHost \*:80>/<VirtualHost \*:$PORT>/g" /etc/apache2/sites-available/000-default.conf
 fi
 
+# Pastikan file .env ada di container
+if [ ! -f /var/www/html/.env ]; then
+    echo "===> Menyiapkan file .env dari .env.example..."
+    cp /var/www/html/.env.example /var/www/html/.env
+fi
+
+# Pastikan APP_KEY terisi otomatis jika belum ada
+DEFAULT_KEY="base64:2e3O9WkHIlwy5QMotxJ/a4KxrYrs3loZHNJBX/8PtlU="
+ACTUAL_KEY="${APP_KEY:-$DEFAULT_KEY}"
+sed -i "s|^APP_KEY=.*|APP_KEY=$ACTUAL_KEY|g" /var/www/html/.env
+
+# Konfigurasi database SQLite & Environment produksi di .env
+sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=sqlite|g' /var/www/html/.env
+sed -i 's|^# DB_DATABASE=.*|DB_DATABASE=/var/www/html/database/database.sqlite|g' /var/www/html/.env
+sed -i 's|^DB_DATABASE=.*|DB_DATABASE=/var/www/html/database/database.sqlite|g' /var/www/html/.env
+sed -i 's|^APP_ENV=.*|APP_ENV=production|g' /var/www/html/.env
+sed -i 's|^APP_DEBUG=.*|APP_DEBUG=false|g' /var/www/html/.env
+
 # Pastikan folder dan database SQLite ada
 mkdir -p /var/www/html/database
 if [ ! -f /var/www/html/database/database.sqlite ]; then
@@ -17,7 +35,8 @@ if [ ! -f /var/www/html/database/database.sqlite ]; then
     touch /var/www/html/database/database.sqlite
 fi
 
-# Set permission storage, cache, dan database
+# Set permission dan kepemilikan user www-data (Apache)
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database /var/www/html/.env
 chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
 
 # Hubungkan public storage symlink
