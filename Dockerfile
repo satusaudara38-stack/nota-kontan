@@ -5,6 +5,13 @@ WORKDIR /var/www/html
 # Salin seluruh file proyek
 COPY . .
 
+# Salin script entrypoint dan bersihkan line-ending Windows (CRLF -> LF)
+COPY entrypoint.sh /entrypoint.sh
+RUN sed -i -e 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
+
+# Install dependensi PHP Composer saat build image
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
 # Konfigurasi Environment Container
 ENV WEBROOT=/var/www/html/public
 ENV PHP_ERRORS_STDERR=1
@@ -15,11 +22,7 @@ ENV APP_DEBUG=false
 ENV LOG_CHANNEL=stderr
 ENV COMPOSER_ALLOW_SUPERUSER=1
 
-# Salin dan berikan izin eksekusi entrypoint script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-# Render menggunakan port 10000 atau 80
+# Port standar Render
 EXPOSE 10000 80
 
 CMD ["/entrypoint.sh"]
