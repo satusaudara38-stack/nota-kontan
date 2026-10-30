@@ -1,67 +1,61 @@
 #!/bin/bash
 set -e
 
-echo "===> Menyiapkan Aplikasi Nota Kontan di Render..."
+echo "===> [1/6] Menyiapkan file .env untuk Render..."
 
-# Sesuaikan port Apache jika Render menetapkan environment variable PORT
+# Tulis file .env secara langsung (tidak perlu sed yang kompleks)
+cat > /var/www/html/.env << 'ENVEOF'
+APP_NAME="Nota Kontan"
+APP_ENV=production
+APP_KEY=base64:2e3O9WkHIlwy5QMotxJ/a4KxrYrs3loZHNJBX/8PtlU=
+APP_DEBUG=true
+APP_URL=https://nota-kontan.onrender.com
+
+LOG_CHANNEL=stderr
+LOG_LEVEL=debug
+
+DB_CONNECTION=sqlite
+DB_DATABASE=/var/www/html/database/database.sqlite
+
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+SESSION_ENCRYPT=false
+SESSION_PATH=/
+
+BROADCAST_CONNECTION=log
+FILESYSTEM_DISK=local
+QUEUE_CONNECTION=sync
+CACHE_STORE=file
+ENVEOF
+
+echo "===> [2/6] Membuat database SQLite..."
+mkdir -p /var/www/html/database
+touch /var/www/html/database/database.sqlite
+
+echo "===> [3/6] Membuat folder storage yang dibutuhkan..."
+mkdir -p /var/www/html/storage/framework/sessions
+mkdir -p /var/www/html/storage/framework/views
+mkdir -p /var/www/html/storage/framework/cache/data
+mkdir -p /var/www/html/storage/logs
+
+echo "===> [4/6] Mengatur izin akses (chmod)..."
+chmod -R 777 /var/www/html/storage
+chmod -R 777 /var/www/html/bootstrap/cache
+chmod -R 777 /var/www/html/database
+chmod 644 /var/www/html/.env
+
+echo "===> [5/6] Menjalankan migrasi dan seeder database..."
+cd /var/www/html
+php artisan migrate --force
+php artisan db:seed --force || echo "Seeder dilewati (mungkin sudah ada data)"
+php artisan storage:link --force || true
+
+echo "===> [6/6] Menyalakan Apache Web Server..."
+# Sesuaikan port Apache jika Render menetapkan PORT
 if [ -n "$PORT" ]; then
-    echo "===> Mengatur Apache untuk port $PORT..."
+    echo "Mengatur Apache port: $PORT"
     sed -i "s/Listen 80/Listen $PORT/g" /etc/apache2/ports.conf
     sed -i "s/<VirtualHost \*:80>/<VirtualHost \*:$PORT>/g" /etc/apache2/sites-available/000-default.conf
 fi
 
-# Pastikan file .env ada di container
-if [ ! -f /var/www/html/.env ]; then
-    echo "===> Menyiapkan file .env dari .env.example..."
-    cp /var/www/html/.env.example /var/www/html/.env
-fi
-
-# Pastikan APP_KEY terisi otomatis jika belum ada
-DEFAULT_KEY="base64:2e3O9WkHIlwy5QMotxJ/a4KxrYrs3loZHNJBX/8PtlU="
-ACTUAL_KEY="${APP_KEY:-$DEFAULT_KEY}"
-sed -i "s|^APP_KEY=.*|APP_KEY=$ACTUAL_KEY|g" /var/www/html/.env
-
-# Konfigurasi database SQLite, session file, dan APP_DEBUG untuk diagnosa
-sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=sqlite|g' /var/www/html/.env
-sed -i 's|^# DB_DATABASE=.*|DB_DATABASE=/var/www/html/database/database.sqlite|g' /var/www/html/.env
-sed -i 's|^DB_DATABASE=.*|DB_DATABASE=/var/www/html/database/database.sqlite|g' /var/www/html/.env
-sed -i 's|^SESSION_DRIVER=.*|SESSION_DRIVER=file|g' /var/www/html/.env
-sed -i 's|^CACHE_STORE=.*|CACHE_STORE=file|g' /var/www/html/.env
-sed -i 's|^APP_ENV=.*|APP_ENV=production|g' /var/www/html/.env
-sed -i 's|^APP_DEBUG=.*|APP_DEBUG=true|g' /var/www/html/.env
-sed -i 's|^LOG_CHANNEL=.*|LOG_CHANNEL=stderr|g' /var/www/html/.env
-
-# Pastikan folder dan file database SQLite ada
-mkdir -p /var/www/html/database
-if [ ! -f /var/www/html/database/database.sqlite ]; then
-    echo "===> Membuat database.sqlite baru..."
-    touch /var/www/html/database/database.sqlite
-fi
-
-# Pastikan folder sessions dan logs ada di storage
-mkdir -p /var/www/html/storage/framework/sessions
-mkdir -p /var/www/html/storage/framework/views
-mkdir -p /var/www/html/storage/framework/cache
-mkdir -p /var/www/html/storage/logs
-
-# Hubungkan public storage symlink
-php artisan storage:link --force || true
-
-# Jalankan migrasi tabel dan seeder kontak pimpinan
-echo "===> Menjalankan migrasi database..."
-php artisan migrate --force || true
-php artisan db:seed --force || true
-
-# Bersihkan semua cache lama agar membaca konfigurasi baru
-php artisan config:clear || true
-php artisan cache:clear || true
-php artisan route:clear || true
-php artisan view:clear || true
-
-# Berikan izin penuh kepada user www-data (Apache) SETELAH semua file dibuat
-echo "===> Mengatur permission untuk user www-data..."
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database /var/www/html/.env
-chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
-
-echo "===> Aplikasi siap! Menjalankan Apache Web Server..."
 exec apache2-foreground
