@@ -129,24 +129,28 @@ class NotaKontanController extends Controller
 
     public function downloadPdf(Request $request, NotaKontan $nota)
     {
-        $pdf = Pdf::loadView('nota.pdf', compact('nota'));
-
-        // Gunakan nama customer sebagai nama file
         $namaFile = preg_replace(
             '/[^A-Za-z0-9_\-]/',
             '_',
             trim($nota->nama_customer ?? 'Customer')
         );
 
-        // Jika parameter ?download=1 diberikan, unduh file
+        // Jika parameter ?download=1 diberikan, unduh file PDF fisik
         if ($request->boolean('download')) {
+            $pdf = Pdf::loadView('nota.pdf', compact('nota'));
             return $pdf->download($namaFile . '.pdf');
         }
 
-        // Default: tampilkan langsung di layar browser (stream inline untuk Android & iPhone)
-        return $pdf->stream($namaFile . '.pdf', [
-            'Attachment' => 0,
-        ]);
+        // Jika parameter ?raw=1 diberikan, kirim raw stream PDF biner
+        if ($request->boolean('raw')) {
+            $pdf = Pdf::loadView('nota.pdf', compact('nota'));
+            return $pdf->stream($namaFile . '.pdf', [
+                'Attachment' => 0,
+            ]);
+        }
+
+        // Default: Tampilkan Lembar Dokumen Nota Resmi Digital (Bisa dibuka 100% langsung di semua jenis HP tanpa perlu download)
+        return view('nota.preview', compact('nota'));
     }
     public function share(NotaKontan $nota)
     {
