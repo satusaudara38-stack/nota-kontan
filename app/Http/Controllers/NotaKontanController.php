@@ -88,38 +88,87 @@ class NotaKontanController extends Controller
         return view('nota.create');
     }
 
-   public function store(Request $request)
-{
-    $validated = $request->validate([
-        'nama_customer' => 'required|string|max:255',
-        'nama_barang' => 'required|string|max:255',
-        'nominal_pembayaran' => 'required|numeric|min:0',
-        'tanggal_upload' => 'required|date',
-        'nomor_wa' => 'required|string|max:20',
-        'bukti_pembayaran' => 'required|image|mimes:jpg,jpeg,png,webp,heic,heif|max:20480',
-        
-    ]);
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'nama_customer' => 'required|string|max:255',
+            'nomor_wa' => 'required|string|max:20',
+            'tanggal_upload' => 'required|date',
+            'nama_barang' => 'nullable|string|max:255',
+            'nominal_pembayaran' => 'nullable|numeric|min:0',
+            'bukti_pembayaran' => 'required|image|mimes:jpg,jpeg,png,webp,heic,heif|max:20480',
+            'items' => 'nullable|array',
+            'items.*.nama' => 'nullable|string|max:255',
+            'items.*.qty' => 'nullable|numeric|min:1',
+            'items.*.harga' => 'nullable|numeric|min:0',
+        ]);
 
-    // Simpan bukti pembayaran ke storage
-    $file = $request->file('bukti_pembayaran');
+        // Proses rincian item dinamis
+        $items = [];
+        $totalNominal = 0;
+        $namaBarangList = [];
 
-    $path = $file->store('nota-kontan', 'public');
+        if ($request->has('items') && is_array($request->items)) {
+            foreach ($request->items as $item) {
+                $nama = trim($item['nama'] ?? '');
+                if ($nama === '') {
+                    continue;
+                }
+                $qty = max(1, (int) ($item['qty'] ?? 1));
+                $harga = max(0, (int) ($item['harga'] ?? 0));
+                $subtotal = $qty * $harga;
 
-    // Isi kolom transaksi
-    $validated['bukti_pembayaran'] = $path;
-    $validated['nominal_pembayaran'] = (int) $validated['nominal_pembayaran'];
+                $items[] = [
+                    'nama' => $nama,
+                    'qty' => $qty,
+                    'harga' => $harga,
+                    'subtotal' => $subtotal,
+                ];
 
-    // Isi kolom wajib dari struktur database lama
-    $validated['nama_file'] = $file->getClientOriginalName();
-    $validated['path_file'] = $path;
+                $totalNominal += $subtotal;
+                $namaBarangList[] = $qty > 1 ? "{$nama} ({$qty}x)" : $nama;
+            }
+        }
 
-    // Simpan transaksi
-    NotaKontan::create($validated);
+        // Fallback jika tidak mengisi rincian item baris
+        if (empty($items)) {
+            $namaBarangUtama = $request->filled('nama_barang') ? $request->nama_barang : 'Barang / Jasa';
+            $nominal = (int) $request->input('nominal_pembayaran', 0);
+            $items = [
+                [
+                    'nama' => $namaBarangUtama,
+                    'qty' => 1,
+                    'harga' => $nominal,
+                    'subtotal' => $nominal,
+                ]
+            ];
+            $totalNominal = $nominal;
+            $namaBarangSummary = $namaBarangUtama;
+        } else {
+            $namaBarangSummary = implode(', ', $namaBarangList);
+            if ($totalNominal === 0 && $request->filled('nominal_pembayaran')) {
+                $totalNominal = (int) $request->nominal_pembayaran;
+            }
+        }
 
-    return redirect()
-        ->route('nota.index')
-        ->with('success', 'Data nota kontan berhasil disimpan.');
-}
+        // Simpan bukti pembayaran ke storage
+        $file = $request->file('bukti_pembayaran');
+        $path = $file->store('nota-kontan', 'public');
+
+        $validated['bukti_pembayaran'] = $path;
+        $validated['nama_barang'] = $namaBarangSummary;
+        $validated['nominal_pembayaran'] = $totalNominal;
+        $validated['items'] = $items;
+        $validated['nama_file'] = $file->getClientOriginalName();
+        $validated['path_file'] = $path;
+
+        // Simpan transaksi
+        NotaKontan::create($validated);
+
+        return redirect()
+            ->route('nota.index')
+            ->with('success', 'Data nota kontan berhasil disimpan.');
+    }
 
     public function show(NotaKontan $nota)
     {
@@ -200,45 +249,94 @@ public function edit(NotaKontan $nota)
     return view('nota.edit', compact('nota'));
 }
 
-public function update(Request $request, NotaKontan $nota)
-{
-    $validated = $request->validate([
-        'nama_customer' => 'required|string|max:255',
-        'nomor_wa' => 'nullable|string|max:20',
-        'nama_barang' => 'required|string|max:255',
-        'nominal_pembayaran' => 'required|numeric|min:0',
-        'tanggal_upload' => 'required|date',
-        'bukti_pembayaran' =>
-            'nullable|image|mimes:jpg,jpeg,png,webp|max:10240',
-    ]);
+    public function update(Request $request, NotaKontan $nota)
+    {
+        $validated = $request->validate([
+            'nama_customer' => 'required|string|max:255',
+            'nomor_wa' => 'nullable|string|max:20',
+            'tanggal_upload' => 'required|date',
+            'nama_barang' => 'nullable|string|max:255',
+            'nominal_pembayaran' => 'nullable|numeric|min:0',
+            'bukti_pembayaran' => 'nullable|image|mimes:jpg,jpeg,png,webp,heic,heif|max:20480',
+            'items' => 'nullable|array',
+            'items.*.nama' => 'nullable|string|max:255',
+            'items.*.qty' => 'nullable|numeric|min:1',
+            'items.*.harga' => 'nullable|numeric|min:0',
+        ]);
 
-    $data = [
-        'nama_customer' => $validated['nama_customer'],
-        'nama_barang' => $validated['nama_barang'],
-        'nominal_pembayaran' => (int) $validated['nominal_pembayaran'],
-        'tanggal_upload' => $validated['tanggal_upload'],
-        'nomor_wa' => $validated['nomor_wa'] ?? null,
-    ];
+        // Proses rincian item dinamis
+        $items = [];
+        $totalNominal = 0;
+        $namaBarangList = [];
 
-    if ($request->hasFile('bukti_pembayaran')) {
-        // Hapus file bukti pembayaran lama dari storage jika ada
-        if ($nota->bukti_pembayaran &&
-            Storage::disk('public')->exists($nota->bukti_pembayaran)) {
-            Storage::disk('public')->delete($nota->bukti_pembayaran);
+        if ($request->has('items') && is_array($request->items)) {
+            foreach ($request->items as $item) {
+                $nama = trim($item['nama'] ?? '');
+                if ($nama === '') {
+                    continue;
+                }
+                $qty = max(1, (int) ($item['qty'] ?? 1));
+                $harga = max(0, (int) ($item['harga'] ?? 0));
+                $subtotal = $qty * $harga;
+
+                $items[] = [
+                    'nama' => $nama,
+                    'qty' => $qty,
+                    'harga' => $harga,
+                    'subtotal' => $subtotal,
+                ];
+
+                $totalNominal += $subtotal;
+                $namaBarangList[] = $qty > 1 ? "{$nama} ({$qty}x)" : $nama;
+            }
         }
 
-        $file = $request->file('bukti_pembayaran');
-        $path = $file->store('nota-kontan', 'public');
+        if (empty($items)) {
+            $namaBarangUtama = $request->filled('nama_barang') ? $request->nama_barang : ($nota->nama_barang ?: 'Barang / Jasa');
+            $nominal = (int) $request->input('nominal_pembayaran', $nota->nominal_pembayaran);
+            $items = [
+                [
+                    'nama' => $namaBarangUtama,
+                    'qty' => 1,
+                    'harga' => $nominal,
+                    'subtotal' => $nominal,
+                ]
+            ];
+            $totalNominal = $nominal;
+            $namaBarangSummary = $namaBarangUtama;
+        } else {
+            $namaBarangSummary = implode(', ', $namaBarangList);
+            if ($totalNominal === 0 && $request->filled('nominal_pembayaran')) {
+                $totalNominal = (int) $request->nominal_pembayaran;
+            }
+        }
 
-        $data['bukti_pembayaran'] = $path;
-        $data['nama_file'] = $file->getClientOriginalName();
-        $data['path_file'] = $path;
+        $data = [
+            'nama_customer' => $validated['nama_customer'],
+            'nama_barang' => $namaBarangSummary,
+            'nominal_pembayaran' => $totalNominal,
+            'items' => $items,
+            'tanggal_upload' => $validated['tanggal_upload'],
+            'nomor_wa' => $validated['nomor_wa'] ?? null,
+        ];
+
+        if ($request->hasFile('bukti_pembayaran')) {
+            if ($nota->bukti_pembayaran && Storage::disk('public')->exists($nota->bukti_pembayaran)) {
+                Storage::disk('public')->delete($nota->bukti_pembayaran);
+            }
+
+            $file = $request->file('bukti_pembayaran');
+            $path = $file->store('nota-kontan', 'public');
+
+            $data['bukti_pembayaran'] = $path;
+            $data['nama_file'] = $file->getClientOriginalName();
+            $data['path_file'] = $path;
+        }
+
+        $nota->update($data);
+
+        return redirect()
+            ->route('nota.index')
+            ->with('success', 'Nota kontan berhasil diperbarui.');
     }
-
-    $nota->update($data);
-
-    return redirect()
-        ->route('nota.index')
-        ->with('success', 'Nota kontan berhasil diperbarui.');
-}
 }

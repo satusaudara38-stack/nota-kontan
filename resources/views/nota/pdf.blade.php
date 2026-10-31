@@ -219,22 +219,31 @@
     <table class="items-table">
         <thead>
             <tr>
-                <th style="width: 40px; text-align: center;">No.</th>
+                <th style="width: 35px; text-align: center;">No.</th>
                 <th>Rincian Barang / Jasa</th>
-                <th style="width: 180px; text-align: right;">Jumlah Pembayaran</th>
+                <th style="width: 60px; text-align: center;">Qty</th>
+                <th style="width: 120px; text-align: right;">Harga Satuan</th>
+                <th style="width: 130px; text-align: right;">Subtotal</th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td style="text-align: center; color: #64748b;">1</td>
-                <td>
-                    <strong style="color: #0f172a;">{{ $nota->nama_barang ?? '-' }}</strong>
-                    <div style="font-size: 10px; color: #64748b; margin-top: 2px;">Pembayaran tunai lunas</div>
-                </td>
-                <td style="text-align: right; font-weight: bold; color: #0f172a;">
-                    Rp {{ number_format($nota->nominal_pembayaran ?? 0, 0, ',', '.') }}
-                </td>
-            </tr>
+            @foreach($nota->items_list as $index => $item)
+                <tr>
+                    <td style="text-align: center; color: #64748b;">{{ $index + 1 }}</td>
+                    <td>
+                        <strong style="color: #0f172a;">{{ $item['nama'] ?? '-' }}</strong>
+                    </td>
+                    <td style="text-align: center; color: #64748b;">
+                        {{ $item['qty'] ?? 1 }}
+                    </td>
+                    <td style="text-align: right; color: #64748b;">
+                        Rp {{ number_format($item['harga'] ?? 0, 0, ',', '.') }}
+                    </td>
+                    <td style="text-align: right; font-weight: bold; color: #0f172a;">
+                        Rp {{ number_format($item['subtotal'] ?? (($item['qty'] ?? 1) * ($item['harga'] ?? 0)), 0, ',', '.') }}
+                    </td>
+                </tr>
+            @endforeach
         </tbody>
     </table>
 

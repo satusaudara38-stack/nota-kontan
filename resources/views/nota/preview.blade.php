@@ -112,7 +112,7 @@
                     <i class="bi bi-arrow-left"></i>
                     <span>Nota Kontan</span>
                 </a>
-                <span class="badge bg-secondary-subtle text-white-50 border border-secondary fw-normal small d-none d-sm-inline">
+                <span class="badge bg-white text-dark fw-bold border px-2.5 py-1 shadow-sm" style="font-size: 0.8rem;">
                     #NK-{{ str_pad($nota->id, 5, '0', STR_PAD_LEFT) }}
                 </span>
             </div>
@@ -190,20 +190,29 @@
                         <tr>
                             <th style="width: 45px;" class="text-center">No.</th>
                             <th>Rincian Barang / Jasa</th>
-                            <th style="width: 220px;" class="text-end">Jumlah Pembayaran</th>
+                            <th style="width: 80px;" class="text-center">Qty</th>
+                            <th style="width: 140px;" class="text-end">Harga Satuan</th>
+                            <th style="width: 160px;" class="text-end">Subtotal</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td class="text-center text-muted fw-semibold">1</td>
-                            <td>
-                                <div class="fw-bold text-dark">{{ $nota->nama_barang ?? '-' }}</div>
-                                <div class="text-muted" style="font-size: 0.78rem;">Pembayaran tunai lunas atas pembelian barang / jasa</div>
-                            </td>
-                            <td class="text-end fw-bold text-dark">
-                                Rp {{ number_format($nota->nominal_pembayaran ?? 0, 0, ',', '.') }}
-                            </td>
-                        </tr>
+                        @foreach($nota->items_list as $index => $item)
+                            <tr>
+                                <td class="text-center text-muted fw-semibold">{{ $index + 1 }}</td>
+                                <td>
+                                    <div class="fw-bold text-dark">{{ $item['nama'] ?? '-' }}</div>
+                                </td>
+                                <td class="text-center text-muted">
+                                    {{ $item['qty'] ?? 1 }}
+                                </td>
+                                <td class="text-end text-muted">
+                                    Rp {{ number_format($item['harga'] ?? 0, 0, ',', '.') }}
+                                </td>
+                                <td class="text-end fw-bold text-dark">
+                                    Rp {{ number_format($item['subtotal'] ?? (($item['qty'] ?? 1) * ($item['harga'] ?? 0)), 0, ',', '.') }}
+                                </td>
+                            </tr>
+                        @endforeach
                     </tbody>
                 </table>
             </div>
@@ -244,3 +253,4 @@
 
 </body>
 </html>
+

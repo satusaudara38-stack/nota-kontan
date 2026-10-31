@@ -58,48 +58,8 @@
                         @enderror
                     </div>
 
-                    {{-- Nama Barang --}}
+                    {{-- Tanggal Transaksi --}}
                     <div class="col-12">
-                        <label for="nama_barang" class="form-label small fw-semibold text-dark">
-                            Nama Barang / Jasa <span class="text-danger">*</span>
-                        </label>
-                        <input type="text"
-                               id="nama_barang"
-                               name="nama_barang"
-                               class="form-control @error('nama_barang') is-invalid @enderror"
-                               value="{{ old('nama_barang') }}"
-                               placeholder="Uraian barang, part, atau jasa yang dibayarkan"
-                               required
-                               maxlength="150">
-                        @error('nama_barang')
-                            <div class="invalid-feedback small">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    {{-- Nominal Pembayaran --}}
-                    <div class="col-md-6">
-                        <label for="nominal_pembayaran" class="form-label small fw-semibold text-dark">
-                            Nominal Pembayaran (Rp) <span class="text-danger">*</span>
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light text-muted small">Rp</span>
-                            <input type="number"
-                                   id="nominal_pembayaran"
-                                   name="nominal_pembayaran"
-                                   min="0"
-                                   step="1"
-                                   class="form-control @error('nominal_pembayaran') is-invalid @enderror"
-                                   value="{{ old('nominal_pembayaran') }}"
-                                   placeholder="Contoh: 350000"
-                                   required>
-                            @error('nominal_pembayaran')
-                                <div class="invalid-feedback small">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    {{-- Tanggal Upload --}}
-                    <div class="col-md-6">
                         <label for="tanggal_upload" class="form-label small fw-semibold text-dark">
                             Tanggal Transaksi <span class="text-danger">*</span>
                         </label>
@@ -112,6 +72,69 @@
                         @error('tanggal_upload')
                             <div class="invalid-feedback small">{{ $message }}</div>
                         @enderror
+                    </div>
+
+                    {{-- Rincian Barang / Item Transaksi (Bisa Tambah & Atur Jumlah Item) --}}
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <label class="form-label small fw-semibold text-dark mb-0">
+                                    Rincian Barang / Jasa <span class="text-danger">*</span>
+                                </label>
+                                <span class="text-muted d-block" style="font-size: 0.73rem;">
+                                    Bisa memasukkan lebih dari 1 barang / item beserta harga satuannya
+                                </span>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm py-1.5 px-3 d-inline-flex align-items-center gap-1.5" id="btnTambahItem" style="font-size: 0.78rem;">
+                                <i class="bi bi-plus-circle"></i>
+                                <span>Tambah Item Baru</span>
+                            </button>
+                        </div>
+
+                        <div class="card bg-light border p-2.5 p-md-3 rounded-3 shadow-none">
+                            <div id="itemsContainer" class="d-flex flex-column gap-2">
+                                {{-- Baris item pertama --}}
+                                <div class="item-row p-2.5 bg-white border rounded-3 shadow-sm">
+                                    <div class="row g-2 align-items-center">
+                                        <div class="col-12 col-md-5">
+                                            <label class="form-label small text-muted mb-1" style="font-size: 0.72rem;">Nama Barang / Item</label>
+                                            <input type="text" name="items[0][nama]" class="form-control form-control-sm item-nama" placeholder="Contoh: Oli Mesin, Baut, Servis..." required>
+                                        </div>
+                                        <div class="col-4 col-md-2">
+                                            <label class="form-label small text-muted mb-1" style="font-size: 0.72rem;">Qty (Jumlah)</label>
+                                            <input type="number" name="items[0][qty]" class="form-control form-control-sm item-qty text-center" value="1" min="1" step="1" required>
+                                        </div>
+                                        <div class="col-8 col-md-3">
+                                            <label class="form-label small text-muted mb-1" style="font-size: 0.72rem;">Harga Satuan (Rp)</label>
+                                            <input type="number" name="items[0][harga]" class="form-control form-control-sm item-harga text-end" placeholder="0" min="0" step="100" required>
+                                        </div>
+                                        <div class="col-10 col-md-2 text-end d-none d-md-block">
+                                            <label class="form-label small text-muted mb-1" style="font-size: 0.72rem;">Subtotal</label>
+                                            <div class="fw-bold text-dark small item-subtotal-text" style="font-size: 0.85rem; padding-top: 5px;">Rp 0</div>
+                                        </div>
+                                        <div class="col-2 col-md-auto text-end pt-md-4">
+                                            <button type="button" class="btn btn-outline-danger btn-sm py-1 px-2 btn-hapus-item" title="Hapus item ini" style="font-size: 0.75rem;" disabled>
+                                                <i class="bi bi-trash3"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Total Pembayaran Otomatis --}}
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-2.5 border-top">
+                                <div>
+                                    <span class="small fw-bold text-dark text-uppercase d-block" style="letter-spacing: 0.05em; font-size: 0.75rem;">
+                                        Total Pembayaran:
+                                    </span>
+                                    <span class="text-muted" id="totalItemCount" style="font-size: 0.72rem;">1 jenis barang</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="fs-4 fw-bold text-success" id="displayTotal">Rp 0</span>
+                                    <input type="hidden" name="nominal_pembayaran" id="nominal_pembayaran" value="0">
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     {{-- Bukti Pembayaran (Kamera Langsung & Upload Dokumen) --}}
@@ -214,6 +237,112 @@
 
 @push('scripts')
 <script>
+    // Pengelolaan Dinamis Item Barang & Kalkulasi Otomatis
+    let itemIndex = 1;
+    const itemsContainer = document.getElementById('itemsContainer');
+    const btnTambahItem = document.getElementById('btnTambahItem');
+    const displayTotal = document.getElementById('displayTotal');
+    const nominalPembayaran = document.getElementById('nominal_pembayaran');
+    const totalItemCount = document.getElementById('totalItemCount');
+
+    function formatRupiah(angka) {
+        return 'Rp ' + (new Intl.NumberFormat('id-ID').format(angka));
+    }
+
+    function hitungTotal() {
+        if (!itemsContainer) return;
+        let total = 0;
+        const rows = itemsContainer.querySelectorAll('.item-row');
+        
+        rows.forEach(row => {
+            const qtyInput = row.querySelector('.item-qty');
+            const hargaInput = row.querySelector('.item-harga');
+            const subtotalText = row.querySelector('.item-subtotal-text');
+            
+            const qty = parseFloat(qtyInput ? qtyInput.value : 1) || 0;
+            const harga = parseFloat(hargaInput ? hargaInput.value : 0) || 0;
+            const subtotal = qty * harga;
+            
+            total += subtotal;
+            if (subtotalText) {
+                subtotalText.textContent = formatRupiah(subtotal);
+            }
+        });
+
+        if (displayTotal) displayTotal.textContent = formatRupiah(total);
+        if (nominalPembayaran) nominalPembayaran.value = total;
+
+        const count = rows.length;
+        if (totalItemCount) totalItemCount.textContent = count + ' jenis barang';
+
+        // Update status disabled pada tombol hapus
+        rows.forEach(row => {
+            const btnHapus = row.querySelector('.btn-hapus-item');
+            if (btnHapus) {
+                btnHapus.disabled = count <= 1;
+            }
+        });
+    }
+
+    if (itemsContainer) {
+        itemsContainer.addEventListener('input', function (e) {
+            if (e.target.classList.contains('item-qty') || e.target.classList.contains('item-harga')) {
+                hitungTotal();
+            }
+        });
+
+        itemsContainer.addEventListener('click', function (e) {
+            const btnHapus = e.target.closest('.btn-hapus-item');
+            if (btnHapus && !btnHapus.disabled) {
+                const row = btnHapus.closest('.item-row');
+                if (row && itemsContainer.querySelectorAll('.item-row').length > 1) {
+                    row.remove();
+                    hitungTotal();
+                }
+            }
+        });
+    }
+
+    if (btnTambahItem) {
+        btnTambahItem.addEventListener('click', function () {
+            const newRow = document.createElement('div');
+            newRow.className = 'item-row p-2.5 bg-white border rounded-3 shadow-sm';
+            newRow.innerHTML = `
+                <div class="row g-2 align-items-center">
+                    <div class="col-12 col-md-5">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.72rem;">Nama Barang / Item</label>
+                        <input type="text" name="items[${itemIndex}][nama]" class="form-control form-control-sm item-nama" placeholder="Contoh: Oli Mesin, Baut, Servis..." required>
+                    </div>
+                    <div class="col-4 col-md-2">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.72rem;">Qty (Jumlah)</label>
+                        <input type="number" name="items[${itemIndex}][qty]" class="form-control form-control-sm item-qty text-center" value="1" min="1" step="1" required>
+                    </div>
+                    <div class="col-8 col-md-3">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.72rem;">Harga Satuan (Rp)</label>
+                        <input type="number" name="items[${itemIndex}][harga]" class="form-control form-control-sm item-harga text-end" placeholder="0" min="0" step="100" required>
+                    </div>
+                    <div class="col-10 col-md-2 text-end d-none d-md-block">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.72rem;">Subtotal</label>
+                        <div class="fw-bold text-dark small item-subtotal-text" style="font-size: 0.85rem; padding-top: 5px;">Rp 0</div>
+                    </div>
+                    <div class="col-2 col-md-auto text-end pt-md-4">
+                        <button type="button" class="btn btn-outline-danger btn-sm py-1 px-2 btn-hapus-item" title="Hapus item ini" style="font-size: 0.75rem;">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            itemsContainer.appendChild(newRow);
+            itemIndex++;
+            hitungTotal();
+
+            const inputBaru = newRow.querySelector('.item-nama');
+            if (inputBaru) inputBaru.focus();
+        });
+    }
+
+    hitungTotal();
+
     let mediaStream = null;
 
     const fileInput = document.getElementById('bukti_pembayaran');

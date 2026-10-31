@@ -14,6 +14,7 @@ return new class extends Migration
             $table->string('nama_customer')->nullable();
             $table->string('nomor_wa', 20)->nullable();
             $table->string('nama_barang')->nullable();
+            $table->text('items')->nullable();
             $table->unsignedBigInteger('nominal_pembayaran')->default(0);
             $table->string('bukti_pembayaran')->nullable();
             $table->string('nama_file')->nullable();

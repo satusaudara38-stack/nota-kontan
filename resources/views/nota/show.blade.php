@@ -66,9 +66,34 @@
                         </td>
                     </tr>
                     <tr class="border-top">
-                        <td class="text-muted small py-2.5">Deskripsi Barang / Jasa</td>
-                        <td class="text-dark py-2.5 fw-medium">
-                            {{ $nota->nama_barang ?? '-' }}
+                        <td class="text-muted small py-2.5 align-top">Rincian Barang / Jasa</td>
+                        <td class="py-2.5">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered align-middle mb-0" style="font-size: 0.8rem;">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width: 30px;" class="text-center">No</th>
+                                            <th>Nama Barang</th>
+                                            <th class="text-center" style="width: 70px;">Qty</th>
+                                            <th class="text-end" style="width: 110px;">Harga</th>
+                                            <th class="text-end" style="width: 120px;">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($nota->items_list as $idx => $it)
+                                            <tr>
+                                                <td class="text-center text-muted">{{ $idx + 1 }}</td>
+                                                <td class="fw-medium text-dark">{{ $it['nama'] ?? '-' }}</td>
+                                                <td class="text-center">{{ $it['qty'] ?? 1 }}</td>
+                                                <td class="text-end">Rp {{ number_format($it['harga'] ?? 0, 0, ',', '.') }}</td>
+                                                <td class="text-end fw-semibold text-dark">
+                                                    Rp {{ number_format($it['subtotal'] ?? (($it['qty'] ?? 1) * ($it['harga'] ?? 0)), 0, ',', '.') }}
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
                         </td>
                     </tr>
                     <tr class="border-top">
