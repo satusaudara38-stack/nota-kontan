@@ -47,7 +47,7 @@ class NotaKontan extends Model
             . "📦 Barang/Jasa: {$this->nama_barang}\n"
             . "💰 Nominal: Rp " . number_format($this->nominal_pembayaran, 0, ',', '.') . "\n"
             . "📅 Tanggal Pembayaran: {$tanggal}\n\n"
-            . "📄 Unduh Berkas Nota PDF Resmi Anda di sini:\n"
+            . "📄 Buka & Tinjau Berkas Nota PDF Resmi Anda di sini:\n"
             . "{$pdfUrl}\n\n"
             . "Status: LUNAS. Simpan pesan ini sebagai bukti pembayaran yang sah.";
 
@@ -71,7 +71,7 @@ class NotaKontan extends Model
             . "📦 Barang: {$this->nama_barang}\n"
             . "💰 Nominal: Rp " . number_format($this->nominal_pembayaran, 0, ',', '.') . "\n"
             . "📅 Tanggal: {$tanggal}\n\n"
-            . "📄 Dokumen Nota PDF resmi dapat diunduh di tautan berikut:\n"
+            . "📄 Dokumen Nota PDF resmi dapat langsung dilihat di tautan berikut:\n"
             . "{$pdfUrl}\n\n"
             . "Laporan ini dikirim otomatis melalui Aplikasi Nota Kontan.";
 

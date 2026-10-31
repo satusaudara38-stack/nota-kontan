@@ -127,19 +127,27 @@ class NotaKontanController extends Controller
         return view('nota.show', compact('nota', 'bosses'));
     }
 
-   public function downloadPdf(NotaKontan $nota)
-{
-    $pdf = Pdf::loadView('nota.pdf', compact('nota'));
+    public function downloadPdf(Request $request, NotaKontan $nota)
+    {
+        $pdf = Pdf::loadView('nota.pdf', compact('nota'));
 
-    // Gunakan nama customer sebagai nama file
-    $namaFile = preg_replace(
-        '/[^A-Za-z0-9_\-]/',
-        '_',
-        trim($nota->nama_customer ?? 'Customer')
-    );
+        // Gunakan nama customer sebagai nama file
+        $namaFile = preg_replace(
+            '/[^A-Za-z0-9_\-]/',
+            '_',
+            trim($nota->nama_customer ?? 'Customer')
+        );
 
-    return $pdf->download($namaFile . '.pdf');
-}
+        // Jika parameter ?download=1 diberikan, unduh file
+        if ($request->boolean('download')) {
+            return $pdf->download($namaFile . '.pdf');
+        }
+
+        // Default: tampilkan langsung di layar browser (stream inline untuk Android & iPhone)
+        return $pdf->stream($namaFile . '.pdf', [
+            'Attachment' => 0,
+        ]);
+    }
     public function share(NotaKontan $nota)
     {
         $url = $nota->wa_customer_url;
