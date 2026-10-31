@@ -22,6 +22,85 @@
     </div>
 </div>
 
+{{-- Panel Filter Tanggal Dashboard --}}
+<div class="card card-custom shadow-sm mb-4 border-0">
+    <div class="card-body p-3">
+        <form method="GET" action="{{ route('dashboard') }}" id="formFilterDashboard">
+            <div class="row g-2 align-items-end">
+
+                {{-- Label & Deskripsi Ringkas --}}
+                <div class="col-12 col-md-4">
+                    <div class="fw-semibold text-dark small mb-1">
+                        <i class="bi bi-funnel text-primary me-1"></i> Filter Periode Transaksi
+                    </div>
+                    <div class="text-muted" style="font-size: 0.75rem;">
+                        Pilih rentang tanggal untuk melihat statistik & ringkasan kas
+                    </div>
+                </div>
+
+                {{-- Filter Dari Tanggal --}}
+                <div class="col-6 col-md-3">
+                    <label for="tanggal_dari" class="form-label small fw-semibold text-dark mb-1">
+                        Dari Tanggal
+                    </label>
+                    <input type="date"
+                           id="tanggal_dari"
+                           name="tanggal_dari"
+                           class="form-control form-control-sm"
+                           value="{{ request('tanggal_dari') }}"
+                           onchange="document.getElementById('formFilterDashboard').submit()">
+                </div>
+
+                {{-- Filter Sampai Tanggal --}}
+                <div class="col-6 col-md-3">
+                    <label for="tanggal_sampai" class="form-label small fw-semibold text-dark mb-1">
+                        Sampai Tanggal
+                    </label>
+                    <input type="date"
+                           id="tanggal_sampai"
+                           name="tanggal_sampai"
+                           class="form-control form-control-sm"
+                           value="{{ request('tanggal_sampai') }}"
+                           onchange="document.getElementById('formFilterDashboard').submit()">
+                </div>
+
+                {{-- Tombol Terapkan & Reset --}}
+                <div class="col-12 col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-brand-primary btn-sm w-100 py-2">
+                        <i class="bi bi-check2 me-1"></i>Terapkan
+                    </button>
+                    @if($filterAktif)
+                        <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-sm py-2" title="Reset filter">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    @endif
+                </div>
+
+            </div>
+
+            {{-- Indikator Filter Aktif --}}
+            @if($filterAktif)
+                <div class="mt-2 pt-2 border-top d-flex flex-wrap align-items-center gap-2">
+                    <span class="small text-muted"><i class="bi bi-funnel-fill text-warning me-1"></i>Menampilkan data periode:</span>
+                    @if(request('tanggal_dari'))
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-normal">
+                            Dari: {{ \Carbon\Carbon::parse(request('tanggal_dari'))->format('d/m/Y') }}
+                        </span>
+                    @endif
+                    @if(request('tanggal_sampai'))
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-normal">
+                            Sampai: {{ \Carbon\Carbon::parse(request('tanggal_sampai'))->format('d/m/Y') }}
+                        </span>
+                    @endif
+                    <a href="{{ route('dashboard') }}" class="small text-danger text-decoration-none ms-1">
+                        <i class="bi bi-x-circle me-1"></i>Tampilkan Seluruh Data
+                    </a>
+                </div>
+            @endif
+        </form>
+    </div>
+</div>
+
 {{-- 4 Kartu Metrik Keuangan (KPI Cards) --}}
 <div class="row g-3 mb-4">
 
@@ -38,7 +117,7 @@
                 Rp {{ number_format($totalNominal, 0, ',', '.') }}
             </div>
             <div class="text-muted small" style="font-size: 0.75rem;">
-                Akumulasi seluruh transaksi
+                {{ $filterAktif ? 'Sesuai rentang tanggal terpilih' : 'Akumulasi seluruh transaksi' }}
             </div>
         </div>
     </div>
@@ -92,7 +171,7 @@
                 WhatsApp Ready
             </div>
             <div class="text-muted small" style="font-size: 0.75rem;">
-                3 Kontak Pimpinan Terdaftar
+                {{ $totalBosses }} Kontak Pimpinan Terdaftar
             </div>
         </div>
     </div>

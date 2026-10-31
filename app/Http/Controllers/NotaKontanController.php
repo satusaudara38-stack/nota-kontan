@@ -10,10 +10,19 @@ use Illuminate\Support\Facades\Storage;
 
 class NotaKontanController extends Controller
 {
-    public function dashboard()
+    public function dashboard(Request $request)
     {
-        $totalNota = NotaKontan::count();
-        $totalNominal = (float) NotaKontan::sum('nominal_pembayaran');
+        $query = NotaKontan::query();
+
+        if ($request->filled('tanggal_dari')) {
+            $query->where('tanggal_upload', '>=', $request->tanggal_dari);
+        }
+        if ($request->filled('tanggal_sampai')) {
+            $query->where('tanggal_upload', '<=', $request->tanggal_sampai);
+        }
+
+        $totalNota = (clone $query)->count();
+        $totalNominal = (float) (clone $query)->sum('nominal_pembayaran');
 
         // Transaksi Bulan Berjalan
         $transaksiBulanIni = NotaKontan::whereMonth('tanggal_upload', now()->month)
@@ -27,9 +36,12 @@ class NotaKontanController extends Controller
         // Rata-rata per transaksi
         $rataRata = $totalNota > 0 ? (int) ($totalNominal / $totalNota) : 0;
 
-        // 5 Transaksi Paling Baru
-        $recentNotas = NotaKontan::latest()->take(5)->get();
+        // 5 Transaksi Paling Baru (sesuai filter)
+        $recentNotas = (clone $query)->latest('tanggal_upload')->orderBy('id', 'desc')->take(5)->get();
         $bosses = KontakBos::where('is_active', true)->get();
+        $totalBosses = $bosses->count();
+
+        $filterAktif = $request->filled('tanggal_dari') || $request->filled('tanggal_sampai');
 
         return view('nota.dashboard', compact(
             'totalNota',
@@ -38,7 +50,9 @@ class NotaKontanController extends Controller
             'nominalBulanIni',
             'rataRata',
             'recentNotas',
-            'bosses'
+            'bosses',
+            'totalBosses',
+            'filterAktif'
         ));
     }
 
