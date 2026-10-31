@@ -215,11 +215,12 @@
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border p-1" style="font-size: 0.8125rem;">
                                         {{-- WhatsApp Customer --}}
-                                        @if($nota->nomor_wa)
+                                        @if($nota->nomor_wa && $nota->wa_customer_url)
                                             <li>
                                                 <a class="dropdown-item py-1.5 px-3 d-flex align-items-center gap-2"
-                                                   href="{{ route('nota.share', $nota->id) }}"
-                                                   target="_blank">
+                                                   href="{{ $nota->wa_customer_url }}"
+                                                   target="_blank"
+                                                   rel="noopener noreferrer">
                                                     <i class="bi bi-whatsapp text-success"></i>
                                                     <span>Kirim WA ke Customer</span>
                                                 </a>

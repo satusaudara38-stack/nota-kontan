@@ -88,8 +88,8 @@
 
             {{-- Action buttons bar --}}
             <div class="d-flex flex-wrap gap-2 pt-4 mt-3 border-top">
-                @if($nota->nomor_wa)
-                    <a href="{{ route('nota.share', $nota->id) }}" target="_blank" class="btn btn-outline-success btn-sm py-1.5 px-3">
+                @if($nota->nomor_wa && $nota->wa_customer_url)
+                    <a href="{{ $nota->wa_customer_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-success btn-sm py-1.5 px-3">
                         <i class="bi bi-whatsapp me-1"></i> WhatsApp Customer
                     </a>
                 @endif

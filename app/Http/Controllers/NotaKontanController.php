@@ -141,69 +141,30 @@ class NotaKontanController extends Controller
     return $pdf->download($namaFile . '.pdf');
 }
     public function share(NotaKontan $nota)
-{
-    // Ambil nomor WhatsApp dari data customer
-    $nomor = preg_replace('/\D/', '', $nota->nomor_wa ?? '');
+    {
+        $url = $nota->wa_customer_url;
+        if (!$url) {
+            return redirect()
+                ->route('nota.index')
+                ->with('error', 'Nomor WhatsApp customer belum tersedia.');
+        }
 
-    // Ubah awalan 08 menjadi 62
-    if (str_starts_with($nomor, '0')) {
-        $nomor = '62' . substr($nomor, 1);
+        return redirect()->away($url);
     }
 
-    // Periksa nomor WhatsApp
-    if (empty($nomor)) {
-        return redirect()
-            ->route('nota.index')
-            ->with('error', 'Nomor WhatsApp customer belum tersedia.');
+    public function shareBoss(Request $request, NotaKontan $nota)
+    {
+        $bossId = (int) $request->query('boss', 0);
+        $boss = KontakBos::find($bossId) ?? KontakBos::where('is_active', true)->first();
+
+        if (!$boss || empty($boss->nomor_wa)) {
+            return redirect()
+                ->route('nota.index')
+                ->with('error', 'Kontak WhatsApp bos belum terdaftar. Silakan tambahkan di menu Kontak Pimpinan.');
+        }
+
+        return redirect()->away($nota->getWaBossUrl($boss));
     }
-
-    // Buat pesan otomatis untuk Customer
-    $pesan = "Halo {$nota->nama_customer},\n"
-        . "Terima kasih atas transaksi Anda. Berikut rincian tanda bukti pembayaran nota kontan:\n\n"
-        . "🧾 No. Nota: #" . str_pad($nota->id, 5, '0', STR_PAD_LEFT) . "\n"
-        . "📦 Barang/Jasa: {$nota->nama_barang}\n"
-        . "💰 Nominal: Rp " . number_format($nota->nominal_pembayaran, 0, ',', '.') . "\n"
-        . "📅 Tanggal Pembayaran: " . \Carbon\Carbon::parse($nota->tanggal_upload)->format('d-m-Y') . "\n\n"
-        . "📄 Unduh Berkas Nota PDF Resmi Anda di sini:\n"
-        . route('nota.pdf', $nota->id) . "\n\n"
-        . "Status: LUNAS. Simpan pesan ini sebagai bukti pembayaran yang sah.";
-
-    // Arahkan ke WhatsApp customer
-    $url = 'https://wa.me/' . $nomor . '?text=' . urlencode($pesan);
-
-    return redirect()->away($url);
-}
-
-public function shareBoss(Request $request, NotaKontan $nota)
-{
-    $bossId = (int) $request->query('boss', 0);
-    $boss = KontakBos::find($bossId) ?? KontakBos::where('is_active', true)->first();
-
-    if (!$boss || empty($boss->nomor_wa)) {
-        return redirect()
-            ->route('nota.index')
-            ->with('error', 'Kontak WhatsApp bos belum terdaftar. Silakan tambahkan di menu Kontak Pimpinan.');
-    }
-
-    $nomor = $boss->wa_link;
-    $jabatan = $boss->jabatan ? " ({$boss->jabatan})" : '';
-
-    // Buat pesan rapi untuk Bos dengan link resmi PDF
-    $pesan = "Halo {$boss->nama}{$jabatan},\n"
-        . "Berikut laporan nota pembayaran transaksi baru:\n\n"
-        . "🧾 No. Nota: #" . str_pad($nota->id, 5, '0', STR_PAD_LEFT) . "\n"
-        . "👤 Customer: {$nota->nama_customer}\n"
-        . "📦 Barang: {$nota->nama_barang}\n"
-        . "💰 Nominal: Rp " . number_format($nota->nominal_pembayaran, 0, ',', '.') . "\n"
-        . "📅 Tanggal: " . \Carbon\Carbon::parse($nota->tanggal_upload)->format('d-m-Y') . "\n\n"
-        . "📄 Dokumen Nota PDF resmi dapat diunduh di tautan berikut:\n"
-        . route('nota.pdf', $nota->id) . "\n\n"
-        . "Laporan ini dikirim otomatis melalui Aplikasi Nota Kontan.";
-
-    $url = 'https://wa.me/' . $nomor . '?text=' . urlencode($pesan);
-
-    return redirect()->away($url);
-}
 public function destroy(NotaKontan $nota)
 {
     // Hapus file bukti pembayaran dari storage

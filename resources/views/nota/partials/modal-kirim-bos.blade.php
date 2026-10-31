@@ -1,7 +1,7 @@
 {{-- Modal Kirim Nota ke WhatsApp Bos --}}
 <div class="modal fade" id="modalKirimBos{{ $nota->id }}" tabindex="-1" aria-labelledby="modalLabel{{ $nota->id }}" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content card-custom shadow-lg border-0 overflow-hidden">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content card-custom shadow-lg border-0">
             {{-- Modal Header --}}
             <div class="modal-header border-bottom py-3 px-4" style="background-color: #0f172a; color: #ffffff;">
                 <div>
@@ -15,7 +15,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             
-            <div class="modal-body p-4">
+            <div class="modal-body p-3 p-md-4" style="-webkit-overflow-scrolling: touch; overflow-y: auto;">
                 {{-- Ringkasan Dokumen --}}
                 <div class="p-3 rounded-3 mb-3" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
                     <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
@@ -38,7 +38,7 @@
 
                     <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center">
                         <span class="small text-muted" style="font-size: 0.78rem;">Dokumen Lampiran:</span>
-                        <a href="{{ route('nota.pdf', $nota->id) }}" target="_blank" class="btn btn-outline-danger btn-sm py-1 px-2.5" style="font-size: 0.75rem;">
+                        <a href="{{ route('nota.pdf', $nota->id) }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-danger btn-sm py-1 px-2.5" style="font-size: 0.75rem;">
                             <i class="bi bi-file-earmark-pdf me-1"></i> Preview PDF
                         </a>
                     </div>
@@ -69,8 +69,10 @@
                                     </div>
                                 </div>
 
-                                <a href="{{ route('nota.share-boss', ['nota' => $nota->id, 'boss' => $b->id]) }}"
+                                {{-- Link WhatsApp Langsung (Universal Link untuk iPhone Safari & Android) --}}
+                                <a href="{{ $nota->getWaBossUrl($b) }}"
                                    target="_blank"
+                                   rel="noopener noreferrer"
                                    class="btn btn-outline-success btn-sm py-1.5 px-3 d-inline-flex align-items-center fw-medium"
                                    style="font-size: 0.78rem;">
                                     <i class="bi bi-whatsapp me-1.5"></i> Kirim
@@ -101,7 +103,7 @@
 
             <div class="modal-footer bg-light border-top py-2.5 px-4 d-flex justify-content-between">
                 <a href="{{ route('kontak-bos.index') }}" class="text-muted small text-decoration-none" style="font-size: 0.72rem;">
-                    <i class="bi bi-plus-circle me-1"></i> Tambah Kontak Pimpinan Baru
+                    <i class="bi bi-plus-circle me-1"></i> Tambah Kontak Baru
                 </a>
                 <button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal">Tutup</button>
             </div>
@@ -114,13 +116,13 @@ if (typeof kirimSemuaBos{{ $nota->id }} === 'undefined') {
     function kirimSemuaBos{{ $nota->id }}() {
         const daftarUrl = [
             @foreach($bosses as $b)
-                "{{ route('nota.share-boss', ['nota' => $nota->id, 'boss' => $b->id]) }}",
+                "{{ $nota->getWaBossUrl($b) }}",
             @endforeach
         ];
 
         daftarUrl.forEach((url, index) => {
             setTimeout(() => {
-                window.open(url, '_blank');
+                window.open(url, '_blank', 'noopener,noreferrer');
             }, index * 600);
         });
     }
