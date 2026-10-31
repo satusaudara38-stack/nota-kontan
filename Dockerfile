@@ -33,6 +33,9 @@ COPY . .
 COPY entrypoint.sh /entrypoint.sh
 RUN sed -i -e 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
 
+# Konfigurasi PHP custom (naikkan batas upload untuk foto kamera HP)
+COPY php-custom.ini /usr/local/etc/php/conf.d/custom.ini
+
 # Install dependensi PHP Composer saat build image (dengan PHP 8.3 asli)
 RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 

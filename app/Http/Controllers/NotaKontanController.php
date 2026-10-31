@@ -42,11 +42,31 @@ class NotaKontanController extends Controller
         ));
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $notas = NotaKontan::latest()->paginate(10);
+        $query = NotaKontan::latest('tanggal_upload')->orderBy('id', 'desc');
+
+        if ($request->filled('tanggal_dari')) {
+            $query->where('tanggal_upload', '>=', $request->tanggal_dari);
+        }
+        if ($request->filled('tanggal_sampai')) {
+            $query->where('tanggal_upload', '<=', $request->tanggal_sampai);
+        }
+        if ($request->filled('cari')) {
+            $cari = $request->cari;
+            $query->where(function ($q) use ($cari) {
+                $q->where('nama_customer', 'like', '%' . $cari . '%')
+                  ->orWhere('nama_barang', 'like', '%' . $cari . '%');
+            });
+        }
+
+        $notas = $query->paginate(10)->withQueryString();
         $bosses = KontakBos::where('is_active', true)->get();
-        return view('nota.index', compact('notas', 'bosses'));
+        $filterAktif = $request->filled('tanggal_dari')
+            || $request->filled('tanggal_sampai')
+            || $request->filled('cari');
+
+        return view('nota.index', compact('notas', 'bosses', 'filterAktif'));
     }
 
     public function create()
@@ -62,7 +82,7 @@ class NotaKontanController extends Controller
         'nominal_pembayaran' => 'required|numeric|min:0',
         'tanggal_upload' => 'required|date',
         'nomor_wa' => 'required|string|max:20',
-        'bukti_pembayaran' => 'required|image|mimes:jpg,jpeg,png|max:10240',
+        'bukti_pembayaran' => 'required|image|mimes:jpg,jpeg,png,webp,heic,heif|max:20480',
         
     ]);
 

@@ -23,6 +23,92 @@
     </div>
 </div>
 
+{{-- Panel Filter Tanggal & Pencarian --}}
+<div class="card card-custom shadow-sm mb-3 border-0">
+    <div class="card-body p-3">
+        <form method="GET" action="{{ route('nota.index') }}" id="formFilter">
+            <div class="row g-2 align-items-end">
+
+                {{-- Filter Tanggal Dari --}}
+                <div class="col-12 col-md-3">
+                    <label for="tanggal_dari" class="form-label small fw-semibold text-dark mb-1">
+                        <i class="bi bi-calendar-event me-1 text-muted"></i>Dari Tanggal
+                    </label>
+                    <input type="date"
+                           id="tanggal_dari"
+                           name="tanggal_dari"
+                           class="form-control form-control-sm"
+                           value="{{ request('tanggal_dari') }}"
+                           onchange="document.getElementById('formFilter').submit()">
+                </div>
+
+                {{-- Filter Tanggal Sampai --}}
+                <div class="col-12 col-md-3">
+                    <label for="tanggal_sampai" class="form-label small fw-semibold text-dark mb-1">
+                        <i class="bi bi-calendar-event me-1 text-muted"></i>Sampai Tanggal
+                    </label>
+                    <input type="date"
+                           id="tanggal_sampai"
+                           name="tanggal_sampai"
+                           class="form-control form-control-sm"
+                           value="{{ request('tanggal_sampai') }}"
+                           onchange="document.getElementById('formFilter').submit()">
+                </div>
+
+                {{-- Pencarian Nama --}}
+                <div class="col-12 col-md-4">
+                    <label for="cari" class="form-label small fw-semibold text-dark mb-1">
+                        <i class="bi bi-search me-1 text-muted"></i>Cari Customer / Barang
+                    </label>
+                    <input type="text"
+                           id="cari"
+                           name="cari"
+                           class="form-control form-control-sm"
+                           value="{{ request('cari') }}"
+                           placeholder="Nama customer atau nama barang...">
+                </div>
+
+                {{-- Tombol Aksi --}}
+                <div class="col-12 col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-brand-primary btn-sm w-100 py-2">
+                        <i class="bi bi-funnel me-1"></i>Filter
+                    </button>
+                    @if($filterAktif)
+                        <a href="{{ route('nota.index') }}" class="btn btn-outline-secondary btn-sm py-2" title="Hapus semua filter">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Indikator filter aktif --}}
+            @if($filterAktif)
+                <div class="mt-2 pt-2 border-top d-flex flex-wrap align-items-center gap-2">
+                    <span class="small text-muted"><i class="bi bi-funnel-fill text-warning me-1"></i>Filter aktif:</span>
+                    @if(request('tanggal_dari'))
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-normal">
+                            Dari: {{ \Carbon\Carbon::parse(request('tanggal_dari'))->format('d/m/Y') }}
+                        </span>
+                    @endif
+                    @if(request('tanggal_sampai'))
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-normal">
+                            Sampai: {{ \Carbon\Carbon::parse(request('tanggal_sampai'))->format('d/m/Y') }}
+                        </span>
+                    @endif
+                    @if(request('cari'))
+                        <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle fw-normal">
+                            Kata kunci: "{{ request('cari') }}"
+                        </span>
+                    @endif
+                    <a href="{{ route('nota.index') }}" class="small text-danger text-decoration-none ms-1">
+                        <i class="bi bi-x-circle me-1"></i>Hapus semua filter
+                    </a>
+                </div>
+            @endif
+        </form>
+    </div>
+</div>
+
 {{-- Main Table Card --}}
 <div class="card card-custom overflow-hidden mb-4 shadow-sm">
     <div class="table-responsive">
@@ -185,11 +271,19 @@
                         <td colspan="6" class="text-center py-5">
                             <div class="py-4">
                                 <i class="bi bi-receipt-cutoff text-muted display-4 d-block mb-3"></i>
-                                <h6 class="fw-semibold text-dark mb-1">Belum Ada Transaksi Tercatat</h6>
-                                <p class="text-muted small mb-3">Mulai catat transaksi pertama Anda dengan menekan tombol di bawah.</p>
-                                <a href="{{ route('nota.create') }}" class="btn btn-brand-accent btn-sm px-3 py-2">
-                                    <i class="bi bi-plus-lg me-1"></i> Input Nota Pertama
-                                </a>
+                                @if($filterAktif)
+                                    <h6 class="fw-semibold text-dark mb-1">Tidak Ada Data yang Cocok</h6>
+                                    <p class="text-muted small mb-3">Tidak ditemukan transaksi yang sesuai dengan filter yang diterapkan.</p>
+                                    <a href="{{ route('nota.index') }}" class="btn btn-outline-secondary btn-sm px-3 py-2">
+                                        <i class="bi bi-x-circle me-1"></i> Hapus Filter
+                                    </a>
+                                @else
+                                    <h6 class="fw-semibold text-dark mb-1">Belum Ada Transaksi Tercatat</h6>
+                                    <p class="text-muted small mb-3">Mulai catat transaksi pertama Anda dengan menekan tombol di bawah.</p>
+                                    <a href="{{ route('nota.create') }}" class="btn btn-brand-accent btn-sm px-3 py-2">
+                                        <i class="bi bi-plus-lg me-1"></i> Input Nota Pertama
+                                    </a>
+                                @endif
                             </div>
                         </td>
                     </tr>
