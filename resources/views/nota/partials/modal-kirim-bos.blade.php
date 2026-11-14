@@ -49,9 +49,11 @@
                     <span class="small fw-bold text-dark text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.05em;">
                         Pilih Kontak Tujuan
                     </span>
-                    <a href="{{ route('kontak-bos.index') }}" class="text-decoration-none small text-primary fw-medium" style="font-size: 0.75rem;">
-                        <i class="bi bi-gear me-1"></i> Kelola Kontak ({{ $bosses->count() }})
-                    </a>
+                    @if(auth()->check() && !auth()->user()->isSales())
+                        <a href="{{ route('kontak-bos.index') }}" class="text-decoration-none small text-primary fw-medium" style="font-size: 0.75rem;">
+                            <i class="bi bi-gear me-1"></i> {{ auth()->user()->isSuperAdmin() ? 'Kelola Kontak' : 'Daftar Kontak' }} ({{ $bosses->count() }})
+                        </a>
+                    @endif
                 </div>
 
                 @if($bosses->isNotEmpty())
@@ -94,17 +96,27 @@
                     <div class="text-center py-4 text-muted border rounded-3 bg-light mb-3">
                         <i class="bi bi-people fs-2 d-block mb-2 text-secondary"></i>
                         <p class="small mb-2">Belum ada nomor WhatsApp pimpinan yang terdaftar.</p>
-                        <a href="{{ route('kontak-bos.index') }}" class="btn btn-brand-primary btn-sm px-3">
-                            <i class="bi bi-plus-lg me-1"></i> Tambah Kontak Sekarang
-                        </a>
+                        @if(auth()->check() && auth()->user()->isSuperAdmin())
+                            <a href="{{ route('kontak-bos.index') }}" class="btn btn-brand-primary btn-sm px-3">
+                                <i class="bi bi-plus-lg me-1"></i> Tambah Kontak Sekarang
+                            </a>
+                        @endif
                     </div>
                 @endif
             </div>
 
             <div class="modal-footer bg-light border-top py-2.5 px-4 d-flex justify-content-between">
-                <a href="{{ route('kontak-bos.index') }}" class="text-muted small text-decoration-none" style="font-size: 0.72rem;">
-                    <i class="bi bi-plus-circle me-1"></i> Tambah Kontak Baru
-                </a>
+                @if(auth()->check() && auth()->user()->isSuperAdmin())
+                    <a href="{{ route('kontak-bos.index') }}" class="text-muted small text-decoration-none" style="font-size: 0.72rem;">
+                        <i class="bi bi-plus-circle me-1"></i> Tambah Kontak Baru
+                    </a>
+                @elseif(auth()->check() && !auth()->user()->isSales())
+                    <a href="{{ route('kontak-bos.index') }}" class="text-muted small text-decoration-none" style="font-size: 0.72rem;">
+                        <i class="bi bi-list me-1"></i> Lihat Daftar Kontak
+                    </a>
+                @else
+                    <span></span>
+                @endif
                 <button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal">Tutup</button>
             </div>
         </div>

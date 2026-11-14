@@ -11,6 +11,7 @@ return new class extends Migration
     {
         Schema::create('nota_kontans', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('nama_customer')->nullable();
             $table->string('nomor_wa', 20)->nullable();
             $table->string('nama_barang')->nullable();

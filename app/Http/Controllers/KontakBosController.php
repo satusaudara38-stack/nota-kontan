@@ -15,6 +15,10 @@ class KontakBosController extends Controller
 
     public function store(Request $request)
     {
+        if (!auth()->user()->isSuperAdmin()) {
+            abort(403, 'Hanya Administrator Utama yang berhak menambah kontak pimpinan.');
+        }
+
         $validated = $request->validate([
             'nama' => 'required|string|max:150',
             'nomor_wa' => 'required|string|max:30',
@@ -32,6 +36,10 @@ class KontakBosController extends Controller
 
     public function update(Request $request, KontakBos $kontakBos)
     {
+        if (!auth()->user()->isSuperAdmin()) {
+            abort(403, 'Hanya Administrator Utama yang berhak mengubah kontak pimpinan.');
+        }
+
         $validated = $request->validate([
             'nama' => 'required|string|max:150',
             'nomor_wa' => 'required|string|max:30',
@@ -47,6 +55,10 @@ class KontakBosController extends Controller
 
     public function destroy(KontakBos $kontakBos)
     {
+        if (!auth()->user()->isSuperAdmin()) {
+            abort(403, 'Hanya Administrator Utama yang berhak menghapus kontak pimpinan.');
+        }
+
         $nama = $kontakBos->nama;
         $kontakBos->delete();
 
@@ -55,4 +67,3 @@ class KontakBosController extends Controller
             ->with('success', "Kontak pimpinan {$nama} berhasil dihapus.");
     }
 }
-

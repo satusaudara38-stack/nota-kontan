@@ -7,9 +7,19 @@
 {{-- Header Halaman --}}
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4 pb-2 border-bottom">
     <div>
-        <h1 class="h4 fw-bold text-dark mb-1">Daftar Nota Kontan</h1>
+        <h1 class="h4 fw-bold text-dark mb-1">
+            @if(auth()->check() && auth()->user()->isSales())
+                Riwayat Transaksi Saya
+            @else
+                Daftar Nota Kontan
+            @endif
+        </h1>
         <p class="text-secondary small mb-0">
-            Arsip transaksi penjualan tunai dan riwayat pelaporan dokumen keuangan.
+            @if(auth()->check() && auth()->user()->isSales())
+                Arsip transaksi penjualan tunai yang Anda input langsung di lapangan.
+            @else
+                Arsip transaksi penjualan tunai dan riwayat pelaporan dokumen keuangan seluruh tim.
+            @endif
         </p>
     </div>
 
@@ -30,7 +40,7 @@
             <div class="row g-2 align-items-end">
 
                 {{-- Filter Tanggal Dari --}}
-                <div class="col-12 col-md-3">
+                <div class="col-6 col-md-{{ auth()->check() && !auth()->user()->isSales() ? '2' : '3' }}">
                     <label for="tanggal_dari" class="form-label small fw-semibold text-dark mb-1">
                         <i class="bi bi-calendar-event me-1 text-muted"></i>Dari Tanggal
                     </label>
@@ -43,7 +53,7 @@
                 </div>
 
                 {{-- Filter Tanggal Sampai --}}
-                <div class="col-12 col-md-3">
+                <div class="col-6 col-md-{{ auth()->check() && !auth()->user()->isSales() ? '2' : '3' }}">
                     <label for="tanggal_sampai" class="form-label small fw-semibold text-dark mb-1">
                         <i class="bi bi-calendar-event me-1 text-muted"></i>Sampai Tanggal
                     </label>
@@ -55,8 +65,25 @@
                            onchange="document.getElementById('formFilter').submit()">
                 </div>
 
+                {{-- Filter Petugas / Sales (Khusus Super Admin & Admin Kantor) --}}
+                @if(auth()->check() && !auth()->user()->isSales() && isset($salesList) && $salesList->isNotEmpty())
+                    <div class="col-12 col-md-3">
+                        <label for="sales_id" class="form-label small fw-semibold text-dark mb-1">
+                            <i class="bi bi-person-badge me-1 text-muted"></i>Petugas / Sales
+                        </label>
+                        <select name="sales_id" id="sales_id" class="form-select form-select-sm" onchange="document.getElementById('formFilter').submit()">
+                            <option value="">Semua Petugas / Sales</option>
+                            @foreach($salesList as $s)
+                                <option value="{{ $s->id }}" {{ request('sales_id') == $s->id ? 'selected' : '' }}>
+                                    {{ $s->name }} (Sales)
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
+
                 {{-- Pencarian Nama --}}
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-{{ auth()->check() && !auth()->user()->isSales() ? '3' : '4' }}">
                     <label for="cari" class="form-label small fw-semibold text-dark mb-1">
                         <i class="bi bi-search me-1 text-muted"></i>Cari Customer / Barang
                     </label>
@@ -95,6 +122,14 @@
                             Sampai: {{ \Carbon\Carbon::parse(request('tanggal_sampai'))->format('d/m/Y') }}
                         </span>
                     @endif
+                    @if(request('sales_id') && isset($salesList))
+                        @php $currentSales = $salesList->firstWhere('id', request('sales_id')); @endphp
+                        @if($currentSales)
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-normal">
+                                Sales: {{ $currentSales->name }}
+                            </span>
+                        @endif
+                    @endif
                     @if(request('cari'))
                         <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle fw-normal">
                             Kata kunci: "{{ request('cari') }}"
@@ -116,11 +151,14 @@
             <thead>
                 <tr>
                     <th style="width: 50px;" class="text-center">No.</th>
-                    <th style="width: 120px;">Tanggal</th>
-                    <th style="min-width: 180px;">Customer</th>
+                    <th style="width: 110px;">Tanggal</th>
+                    <th style="min-width: 170px;">Customer</th>
                     <th style="min-width: 150px;">Barang / Jasa</th>
-                    <th style="min-width: 160px;">Nominal</th>
-                    <th style="min-width: 330px;" class="text-end pe-4">Aksi Dokumen</th>
+                    <th style="width: 140px;">Nominal</th>
+                    @if(auth()->check() && !auth()->user()->isSales())
+                        <th style="width: 140px;">Petugas / Sales</th>
+                    @endif
+                    <th style="min-width: {{ auth()->check() && auth()->user()->isSales() ? '220px' : '310px' }};" class="text-end pe-4">Aksi Dokumen</th>
                 </tr>
             </thead>
 
@@ -173,7 +211,15 @@
                             </div>
                         </td>
 
-                        {{-- Aksi Dokumen (Rapi, Bernafas, Tidak Dempet) --}}
+                        {{-- Petugas Pembuat (Tampil jika Admin Kantor / Super Admin) --}}
+                        @if(auth()->check() && !auth()->user()->isSales())
+                            <td>
+                                <div class="fw-semibold text-dark small">{{ $nota->user ? $nota->user->name : 'Sistem / Kantor' }}</div>
+                                <small class="text-muted" style="font-size: 0.72rem;">{{ $nota->user ? $nota->user->role_label : 'Kantor Pusat' }}</small>
+                            </td>
+                        @endif
+
+                        {{-- Aksi Dokumen --}}
                         <td class="text-end pe-4">
                             <div class="d-inline-flex align-items-center gap-2">
 
@@ -185,24 +231,26 @@
                                     <i class="bi bi-eye me-1"></i> Detail
                                 </a>
 
-                                {{-- 2. Tombol Unduh PDF --}}
+                                {{-- 2. Tombol Unduh / Lihat PDF --}}
                                 <a href="{{ route('nota.pdf', $nota->id) }}"
                                    target="_blank"
                                    class="btn btn-outline-danger btn-sm py-1 px-2.5"
                                    style="font-size: 0.78rem;"
-                                   title="Unduh Berkas PDF Resmi">
+                                   title="Buka Berkas PDF Resmi">
                                     <i class="bi bi-file-earmark-pdf me-1"></i> PDF
                                 </a>
 
-                                {{-- 3. Tombol Utama: Kirim ke Bos --}}
-                                <button type="button"
-                                        class="btn btn-brand-primary btn-sm py-1 px-3"
-                                        style="font-size: 0.78rem;"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#modalKirimBos{{ $nota->id }}"
-                                        title="Kirim Laporan Nota ke WhatsApp Pimpinan">
-                                    <i class="bi bi-send me-1"></i> Kirim ke Bos
-                                </button>
+                                {{-- 3. Tombol Kirim ke Bos (Khusus Super Admin & Admin Kantor) --}}
+                                @if(auth()->check() && !auth()->user()->isSales())
+                                    <button type="button"
+                                            class="btn btn-brand-primary btn-sm py-1 px-3"
+                                            style="font-size: 0.78rem;"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalKirimBos{{ $nota->id }}"
+                                            title="Kirim Laporan Nota ke WhatsApp Pimpinan">
+                                        <i class="bi bi-send me-1"></i> Kirim ke Bos
+                                    </button>
+                                @endif
 
                                 {{-- 4. Menu Dropdown: Kelola & Customer --}}
                                 <div class="dropdown d-inline-block">
@@ -242,21 +290,22 @@
                                             </a>
                                         </li>
 
-                                        <li><hr class="dropdown-divider my-1"></li>
-
-                                        {{-- Hapus --}}
-                                        <li>
-                                            <form action="{{ route('nota.destroy', $nota->id) }}"
-                                                  method="POST"
-                                                  onsubmit="return confirm('Apakah Anda yakin ingin menghapus data nota milik customer {{ addslashes($nota->nama_customer ?? 'ini') }}? Tindakan ini tidak dapat dibatalkan.');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="dropdown-item py-1.5 px-3 d-flex align-items-center gap-2 text-danger">
-                                                    <i class="bi bi-trash3"></i>
-                                                    <span>Hapus Nota</span>
-                                                </button>
-                                            </form>
-                                        </li>
+                                        {{-- Hapus (Khusus Super Admin) --}}
+                                        @if(auth()->check() && auth()->user()->isSuperAdmin())
+                                            <li><hr class="dropdown-divider my-1"></li>
+                                            <li>
+                                                <form action="{{ route('nota.destroy', $nota->id) }}"
+                                                      method="POST"
+                                                      onsubmit="return confirm('Apakah Anda yakin ingin menghapus data nota milik customer {{ addslashes($nota->nama_customer ?? 'ini') }}? Tindakan ini tidak dapat dibatalkan.');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="dropdown-item py-1.5 px-3 d-flex align-items-center gap-2 text-danger">
+                                                        <i class="bi bi-trash3"></i>
+                                                        <span>Hapus Nota</span>
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        @endif
                                     </ul>
                                 </div>
 
@@ -265,11 +314,13 @@
                     </tr>
 
                     {{-- Modal Kirim ke Bos per Nota --}}
-                    @include('nota.partials.modal-kirim-bos', ['nota' => $nota, 'bosses' => $bosses])
+                    @if(auth()->check() && !auth()->user()->isSales())
+                        @include('nota.partials.modal-kirim-bos', ['nota' => $nota, 'bosses' => $bosses])
+                    @endif
 
                 @empty
                     <tr>
-                        <td colspan="6" class="text-center py-5">
+                        <td colspan="{{ auth()->check() && !auth()->user()->isSales() ? '7' : '6' }}" class="text-center py-5">
                             <div class="py-4">
                                 <i class="bi bi-receipt-cutoff text-muted display-4 d-block mb-3"></i>
                                 @if($filterAktif)

@@ -192,21 +192,69 @@
                 <ul class="navbar-nav align-items-lg-center gap-1 mt-3 mt-lg-0">
                     <li class="nav-item">
                         <a href="{{ route('dashboard') }}" class="nav-link nav-link-custom {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                            <i class="bi bi-grid-1x2 me-2"></i> Dashboard
+                            <i class="bi bi-grid-1x2 me-1.5"></i> Dashboard
                         </a>
                     </li>
 
                     <li class="nav-item">
                         <a href="{{ route('nota.index') }}" class="nav-link nav-link-custom {{ request()->routeIs('nota.index') || request()->routeIs('nota.show') || request()->routeIs('nota.edit') ? 'active' : '' }}">
-                            <i class="bi bi-receipt me-2"></i> Data Transaksi
+                            <i class="bi bi-receipt me-1.5"></i>
+                            @if(auth()->check() && auth()->user()->isSales())
+                                Riwayat Transaksi Saya
+                            @else
+                                Data Transaksi
+                            @endif
                         </a>
                     </li>
 
-                    <li class="nav-item">
-                        <a href="{{ route('kontak-bos.index') }}" class="nav-link nav-link-custom {{ request()->routeIs('kontak-bos.*') ? 'active' : '' }}">
-                            <i class="bi bi-people me-2"></i> Kontak Pimpinan
-                        </a>
-                    </li>
+                    @if(auth()->check() && !auth()->user()->isSales())
+                        <li class="nav-item">
+                            <a href="{{ route('kontak-bos.index') }}" class="nav-link nav-link-custom {{ request()->routeIs('kontak-bos.*') ? 'active' : '' }}">
+                                <i class="bi bi-telephone-outbound me-1.5"></i> Kontak Pimpinan
+                            </a>
+                        </li>
+                    @endif
+
+                    @if(auth()->check() && auth()->user()->isSuperAdmin())
+                        <li class="nav-item">
+                            <a href="{{ route('users.index') }}" class="nav-link nav-link-custom {{ request()->routeIs('users.*') ? 'active' : '' }}">
+                                <i class="bi bi-people-fill me-1.5"></i> Kelola Pengguna
+                            </a>
+                        </li>
+                    @endif
+
+                    {{-- User Profile & Logout --}}
+                    @auth
+                        <li class="nav-item dropdown ms-lg-2 mt-2 mt-lg-0 border-top border-lg-0 pt-2 pt-lg-0">
+                            <button class="btn btn-sm btn-outline-light border-0 py-1 px-2.5 d-flex align-items-center gap-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; background-color: #2563eb; color: #fff; font-size: 0.75rem;">
+                                    {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                                </span>
+                                <div class="text-start d-none d-sm-block">
+                                    <div class="fw-semibold text-white small" style="line-height: 1.1; font-size: 0.78rem;">{{ auth()->user()->name }}</div>
+                                    <div class="text-white-50" style="font-size: 0.68rem;">{{ auth()->user()->role_label }}</div>
+                                </div>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border p-2" style="font-size: 0.8125rem; min-width: 220px;">
+                                <li class="px-2 py-1.5 border-bottom mb-1">
+                                    <div class="fw-bold text-dark">{{ auth()->user()->name }}</div>
+                                    <div class="text-muted small text-truncate">{{ auth()->user()->email }}</div>
+                                    <span class="badge {{ auth()->user()->role_badge_class }} mt-1 fw-semibold" style="font-size: 0.68rem;">
+                                        {{ auth()->user()->role_label }}
+                                    </span>
+                                </li>
+                                <li>
+                                    <form action="{{ route('logout') }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item py-1.5 px-2 text-danger d-flex align-items-center gap-2 rounded">
+                                            <i class="bi bi-box-arrow-right"></i>
+                                            <span>Keluar (Logout)</span>
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    @endauth
                 </ul>
             </div>
         </div>

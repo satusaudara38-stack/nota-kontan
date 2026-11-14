@@ -17,10 +17,12 @@
         <span class="badge bg-white text-secondary border px-3 py-2 fw-medium shadow-sm">
             Total: {{ $kontakBos->count() }} Pimpinan
         </span>
-        <button type="button" class="btn btn-brand-primary btn-sm px-3 py-2 shadow-sm d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#modalTambahBos">
-            <i class="bi bi-plus-lg me-2"></i>
-            <span>Tambah Kontak Baru</span>
-        </button>
+        @if(auth()->check() && auth()->user()->isSuperAdmin())
+            <button type="button" class="btn btn-brand-primary btn-sm px-3 py-2 shadow-sm d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#modalTambahBos">
+                <i class="bi bi-plus-lg me-2"></i>
+                <span>Tambah Kontak Baru</span>
+            </button>
+        @endif
     </div>
 </div>
 
@@ -76,30 +78,36 @@
                         </td>
 
                         <td class="text-end pe-4">
-                            <div class="d-inline-flex align-items-center gap-2">
-                                {{-- Tombol Edit --}}
-                                <button type="button"
-                                        class="btn btn-light btn-sm text-secondary border px-3 py-1.5 d-inline-flex align-items-center"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#modalEditBos{{ $b->id }}"
-                                        title="Ubah Data">
-                                    <i class="bi bi-pencil me-1.5"></i> Edit
-                                </button>
-
-                                {{-- Tombol Hapus --}}
-                                <form action="{{ route('kontak-bos.destroy', $b->id) }}"
-                                      method="POST"
-                                      class="d-inline"
-                                      onsubmit="return confirm('Apakah Anda yakin ingin menghapus kontak {{ addslashes($b->nama) }}?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit"
-                                            class="btn btn-light btn-sm text-danger border px-3 py-1.5 d-inline-flex align-items-center"
-                                            title="Hapus Kontak">
-                                        <i class="bi bi-trash3 me-1.5"></i> Hapus
+                            @if(auth()->check() && auth()->user()->isSuperAdmin())
+                                <div class="d-inline-flex align-items-center gap-2">
+                                    {{-- Tombol Edit --}}
+                                    <button type="button"
+                                            class="btn btn-light btn-sm text-secondary border px-3 py-1.5 d-inline-flex align-items-center"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalEditBos{{ $b->id }}"
+                                            title="Ubah Data">
+                                        <i class="bi bi-pencil me-1.5"></i> Edit
                                     </button>
-                                </form>
-                            </div>
+
+                                    {{-- Tombol Hapus --}}
+                                    <form action="{{ route('kontak-bos.destroy', $b->id) }}"
+                                          method="POST"
+                                          class="d-inline"
+                                          onsubmit="return confirm('Apakah Anda yakin ingin menghapus kontak {{ addslashes($b->nama) }}?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                                class="btn btn-light btn-sm text-danger border px-3 py-1.5 d-inline-flex align-items-center"
+                                                title="Hapus Kontak">
+                                            <i class="bi bi-trash3 me-1.5"></i> Hapus
+                                        </button>
+                                    </form>
+                                </div>
+                            @else
+                                <span class="badge bg-light text-muted border py-1.5 px-2.5" style="font-size: 0.72rem;">
+                                    <i class="bi bi-lock me-1"></i>Hanya Super Admin
+                                </span>
+                            @endif
                         </td>
                     </tr>
 

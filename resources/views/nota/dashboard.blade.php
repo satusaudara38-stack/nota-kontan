@@ -7,9 +7,19 @@
 {{-- Page Header --}}
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4 pb-2 border-bottom">
     <div>
-        <h1 class="h4 fw-bold text-dark mb-1">Dashboard Ikhtisar</h1>
+        <h1 class="h4 fw-bold text-dark mb-1">
+            @if(auth()->check() && auth()->user()->isSales())
+                Dashboard Penjualan Saya
+            @else
+                Dashboard Ikhtisar
+            @endif
+        </h1>
         <p class="text-secondary small mb-0">
-            Monitoring performa arus kas masuk, arsip faktur, dan aktivitas pelaporan terkini.
+            @if(auth()->check() && auth()->user()->isSales())
+                Monitoring performa pencatatan kas masuk dan penjualan lapangan Anda.
+            @else
+                Monitoring performa arus kas masuk, arsip faktur, dan aktivitas pelaporan seluruh tim.
+            @endif
         </p>
     </div>
     <div class="d-flex align-items-center gap-2">
@@ -108,7 +118,9 @@
     <div class="col-sm-6 col-lg-3">
         <div class="card card-custom p-3.5 h-100">
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="text-uppercase small fw-bold text-muted" style="font-size: 0.72rem; letter-spacing: 0.05em;">Total Kas Masuk</span>
+                <span class="text-uppercase small fw-bold text-muted" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+                    {{ auth()->check() && auth()->user()->isSales() ? 'Kas Masuk Saya' : 'Total Kas Masuk' }}
+                </span>
                 <span class="badge bg-success-subtle text-success border border-success-subtle rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
                     <i class="bi bi-wallet2 fs-6"></i>
                 </span>
@@ -117,7 +129,7 @@
                 Rp {{ number_format($totalNominal, 0, ',', '.') }}
             </div>
             <div class="text-muted small" style="font-size: 0.75rem;">
-                {{ $filterAktif ? 'Sesuai rentang tanggal terpilih' : 'Akumulasi seluruh transaksi' }}
+                {{ $filterAktif ? 'Sesuai rentang tanggal terpilih' : (auth()->check() && auth()->user()->isSales() ? 'Akumulasi transaksi Anda' : 'Akumulasi seluruh transaksi') }}
             </div>
         </div>
     </div>
@@ -158,20 +170,22 @@
         </div>
     </div>
 
-    {{-- Saluran Pelaporan --}}
+    {{-- Saluran Pelaporan / Status Petugas --}}
     <div class="col-sm-6 col-lg-3">
         <div class="card card-custom p-3.5 h-100">
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="text-uppercase small fw-bold text-muted" style="font-size: 0.72rem; letter-spacing: 0.05em;">Jalur Distribusi</span>
+                <span class="text-uppercase small fw-bold text-muted" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+                    {{ auth()->check() && auth()->user()->isSales() ? 'Petugas Lapangan' : 'Jalur Distribusi' }}
+                </span>
                 <span class="badge bg-info-subtle text-info border border-info-subtle rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                    <i class="bi bi-send-check fs-6"></i>
+                    <i class="bi {{ auth()->check() && auth()->user()->isSales() ? 'bi-person-badge' : 'bi-send-check' }} fs-6"></i>
                 </span>
             </div>
             <div class="fs-5 fw-bold text-dark mb-1">
-                WhatsApp Ready
+                {{ auth()->check() && auth()->user()->isSales() ? auth()->user()->name : 'WhatsApp Ready' }}
             </div>
             <div class="text-muted small" style="font-size: 0.75rem;">
-                {{ $totalBosses }} Kontak Pimpinan Terdaftar
+                {{ auth()->check() && auth()->user()->isSales() ? 'Status: Akun Sales Aktif' : $totalBosses . ' Kontak Pimpinan Terdaftar' }}
             </div>
         </div>
     </div>

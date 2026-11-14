@@ -22,9 +22,11 @@
         <a href="{{ route('nota.pdf', $nota->id) }}" target="_blank" class="btn btn-outline-danger btn-sm py-1.5 px-3">
             <i class="bi bi-file-earmark-pdf me-1"></i> Cetak / PDF
         </a>
-        <button type="button" class="btn btn-brand-primary btn-sm py-1.5 px-3" data-bs-toggle="modal" data-bs-target="#modalKirimBos{{ $nota->id }}">
-            <i class="bi bi-send me-1"></i> Kirim ke Bos
-        </button>
+        @if(auth()->check() && !auth()->user()->isSales())
+            <button type="button" class="btn btn-brand-primary btn-sm py-1.5 px-3" data-bs-toggle="modal" data-bs-target="#modalKirimBos{{ $nota->id }}">
+                <i class="bi bi-send me-1"></i> Kirim ke Bos
+            </button>
+        @endif
     </div>
 </div>
 
@@ -102,6 +104,15 @@
                             {{ $nota->tanggal_upload ? \Carbon\Carbon::parse($nota->tanggal_upload)->format('d F Y') : '-' }}
                         </td>
                     </tr>
+                    <tr class="border-top">
+                        <td class="text-muted small py-2.5">Petugas / Pembuat</td>
+                        <td class="py-2.5">
+                            <span class="fw-semibold text-dark">{{ $nota->user ? $nota->user->name : 'Sistem / Kantor Pusat' }}</span>
+                            @if($nota->user)
+                                <span class="badge {{ $nota->user->role_badge_class }} ms-1" style="font-size: 0.68rem;">{{ $nota->user->role_label }}</span>
+                            @endif
+                        </td>
+                    </tr>
                     <tr class="border-top" style="background-color: #f8fafc;">
                         <td class="text-muted fw-semibold py-3 ps-2">Total Pembayaran</td>
                         <td class="fw-bold text-success fs-5 py-3 pe-2">
@@ -123,13 +134,15 @@
                     <i class="bi bi-pencil me-1"></i> Edit Data
                 </a>
 
-                <form action="{{ route('nota.destroy', $nota->id) }}" method="POST" class="d-inline ms-auto" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data nota ini secara permanen?');">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-outline-danger btn-sm py-1.5 px-3">
-                        <i class="bi bi-trash3 me-1"></i> Hapus
-                    </button>
-                </form>
+                @if(auth()->check() && auth()->user()->isSuperAdmin())
+                    <form action="{{ route('nota.destroy', $nota->id) }}" method="POST" class="d-inline ms-auto" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data nota ini secara permanen?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-outline-danger btn-sm py-1.5 px-3">
+                            <i class="bi bi-trash3"></i> Hapus
+                        </button>
+                    </form>
+                @endif
             </div>
         </div>
     </div>

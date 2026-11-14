@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class NotaKontan extends Model
 {
     protected $fillable = [
+        'user_id',
         'nama_customer',
         'nama_barang',
         'items',
@@ -17,6 +18,11 @@ class NotaKontan extends Model
         'path_file',
         'nomor_wa',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 
     protected function casts(): array
     {
