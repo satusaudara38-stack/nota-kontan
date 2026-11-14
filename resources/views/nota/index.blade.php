@@ -225,41 +225,44 @@
 
                                 {{-- 1. Tombol Detail --}}
                                 <a href="{{ route('nota.show', $nota->id) }}"
-                                   class="btn btn-outline-dark btn-sm py-1 px-2.5"
-                                   style="font-size: 0.78rem;"
+                                   class="btn btn-outline-dark btn-sm py-1.5 px-3 d-inline-flex align-items-center gap-1.5"
+                                   style="font-size: 0.8rem;"
                                    title="Tinjau Detail Faktur & Bukti Struk">
-                                    <i class="bi bi-eye me-1"></i> Detail
+                                    <i class="bi bi-eye"></i>
+                                    <span>Detail</span>
                                 </a>
 
                                 {{-- 2. Tombol Unduh / Lihat PDF --}}
                                 <a href="{{ route('nota.pdf', $nota->id) }}"
                                    target="_blank"
-                                   class="btn btn-outline-danger btn-sm py-1 px-2.5"
-                                   style="font-size: 0.78rem;"
+                                   class="btn btn-outline-danger btn-sm py-1.5 px-3 d-inline-flex align-items-center gap-1.5"
+                                   style="font-size: 0.8rem;"
                                    title="Buka Berkas PDF Resmi">
-                                    <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+                                    <i class="bi bi-file-earmark-pdf"></i>
+                                    <span>PDF</span>
                                 </a>
 
                                 {{-- 3. Tombol Kirim ke Bos (Khusus Super Admin & Admin Kantor) --}}
                                 @if(auth()->check() && !auth()->user()->isSales())
                                     <button type="button"
-                                            class="btn btn-brand-primary btn-sm py-1 px-3"
-                                            style="font-size: 0.78rem;"
+                                            class="btn btn-brand-primary btn-sm py-1.5 px-3 d-inline-flex align-items-center gap-1.5"
+                                            style="font-size: 0.8rem;"
                                             data-bs-toggle="modal"
                                             data-bs-target="#modalKirimBos{{ $nota->id }}"
                                             title="Kirim Laporan Nota ke WhatsApp Pimpinan">
-                                        <i class="bi bi-send me-1"></i> Kirim ke Bos
+                                        <i class="bi bi-send"></i>
+                                        <span>Kirim ke Bos</span>
                                     </button>
                                 @endif
 
                                 {{-- 4. Menu Dropdown: Kelola & Customer --}}
                                 <div class="dropdown d-inline-block">
-                                    <button class="btn btn-light btn-sm border text-secondary py-1 px-2.5 dropdown-toggle"
+                                    <button class="btn btn-light btn-sm border text-secondary py-1.5 px-3 d-inline-flex align-items-center gap-1 dropdown-toggle"
                                             type="button"
                                             data-bs-toggle="dropdown"
                                             aria-expanded="false"
-                                            style="font-size: 0.78rem;">
-                                        Kelola
+                                            style="font-size: 0.8rem;">
+                                        <span>Kelola</span>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border p-1" style="font-size: 0.8125rem;">
                                         {{-- WhatsApp Customer --}}

@@ -170,6 +170,21 @@
             border-color: #1d4ed8;
         }
 
+        /* Utility Spacing & Icons Helper */
+        .gap-1\.5 { gap: 0.375rem !important; }
+        .gap-2 { gap: 0.5rem !important; }
+        .gap-2\.5 { gap: 0.625rem !important; }
+        .gap-3 { gap: 0.75rem !important; }
+        .me-1\.5 { margin-right: 0.375rem !important; }
+        .ms-1\.5 { margin-left: 0.375rem !important; }
+        .px-3\.5 { padding-left: 0.875rem !important; padding-right: 0.875rem !important; }
+        .p-3\.5 { padding: 0.875rem !important; }
+        .btn i {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         /* Table Styling */
         .table-custom {
             margin-bottom: 0;

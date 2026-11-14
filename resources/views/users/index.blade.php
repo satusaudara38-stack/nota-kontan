@@ -14,7 +14,7 @@
     </div>
 
     <div class="d-flex align-items-center gap-2">
-        <button type="button" class="btn btn-brand-accent btn-sm px-3 py-2 shadow-sm d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#modalTambahUser">
+        <button type="button" class="btn btn-brand-accent btn-sm px-3.5 py-2 shadow-sm d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#modalTambahUser">
             <i class="bi bi-person-plus-fill"></i>
             <span>Tambah Akun Baru</span>
         </button>
@@ -191,16 +191,17 @@
 
                         {{-- Aksi --}}
                         <td class="text-end pe-4">
-                            <div class="d-inline-flex align-items-center gap-1.5">
+                            <div class="d-inline-flex align-items-center gap-2">
                                 {{-- Tombol Edit --}}
-                                <button type="button" class="btn btn-outline-dark btn-sm py-1 px-2.5" style="font-size: 0.78rem;" data-bs-toggle="modal" data-bs-target="#modalEditUser{{ $u->id }}" title="Edit Data Pengguna">
-                                    <i class="bi bi-pencil me-1"></i>Edit
+                                <button type="button" class="btn btn-outline-secondary btn-sm px-3 py-1.5 d-inline-flex align-items-center gap-2" style="font-size: 0.8rem;" data-bs-toggle="modal" data-bs-target="#modalEditUser{{ $u->id }}" title="Edit Data Pengguna">
+                                    <i class="bi bi-pencil"></i>
+                                    <span>Edit</span>
                                 </button>
 
                                 {{-- Dropdown Aksi Lanjutan --}}
                                 <div class="dropdown d-inline-block">
-                                    <button class="btn btn-light btn-sm border text-secondary py-1 px-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" style="font-size: 0.78rem;">
-                                        Opsi
+                                    <button class="btn btn-light btn-sm border text-secondary px-3 py-1.5 d-inline-flex align-items-center gap-1.5 dropdown-toggle" type="button" data-bs-toggle="dropdown" style="font-size: 0.8rem;">
+                                        <span>Opsi</span>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border p-1" style="font-size: 0.8125rem;">
                                         {{-- Toggle Status --}}

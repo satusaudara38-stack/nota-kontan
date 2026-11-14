@@ -82,24 +82,26 @@
                                 <div class="d-inline-flex align-items-center gap-2">
                                     {{-- Tombol Edit --}}
                                     <button type="button"
-                                            class="btn btn-light btn-sm text-secondary border px-3 py-1.5 d-inline-flex align-items-center"
+                                            class="btn btn-outline-secondary btn-sm px-3 py-1.5 d-inline-flex align-items-center gap-2"
                                             data-bs-toggle="modal"
                                             data-bs-target="#modalEditBos{{ $b->id }}"
-                                            title="Ubah Data">
-                                        <i class="bi bi-pencil me-1.5"></i> Edit
+                                            title="Ubah Data Kontak">
+                                        <i class="bi bi-pencil"></i>
+                                        <span>Edit</span>
                                     </button>
 
                                     {{-- Tombol Hapus --}}
                                     <form action="{{ route('kontak-bos.destroy', $b->id) }}"
                                           method="POST"
-                                          class="d-inline"
+                                          class="d-inline m-0"
                                           onsubmit="return confirm('Apakah Anda yakin ingin menghapus kontak {{ addslashes($b->nama) }}?');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit"
-                                                class="btn btn-light btn-sm text-danger border px-3 py-1.5 d-inline-flex align-items-center"
+                                                class="btn btn-outline-danger btn-sm px-3 py-1.5 d-inline-flex align-items-center gap-2"
                                                 title="Hapus Kontak">
-                                            <i class="bi bi-trash3 me-1.5"></i> Hapus
+                                            <i class="bi bi-trash3"></i>
+                                            <span>Hapus</span>
                                         </button>
                                     </form>
                                 </div>
