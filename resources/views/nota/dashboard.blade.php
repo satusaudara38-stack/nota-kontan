@@ -209,11 +209,11 @@
         <table class="table table-custom align-middle mb-0">
             <thead>
                 <tr>
-                    <th style="width: 130px;">Tanggal</th>
+                    <th style="width: 120px;">Tanggal</th>
                     <th>Customer</th>
-                    <th>Barang / Jasa</th>
-                    <th style="width: 170px;">Nominal</th>
-                    <th style="width: 200px;" class="text-end pe-4">Aksi Cepat</th>
+                    <th>Type Unit & Warna</th>
+                    <th style="width: 160px;">Total Bayar</th>
+                    <th style="width: {{ auth()->check() && auth()->user()->isSales() ? '110px' : '220px' }};" class="text-end pe-4">Aksi Cepat</th>
                 </tr>
             </thead>
             <tbody>
@@ -228,27 +228,30 @@
                             </small>
                         </td>
                         <td>
-                            <div class="fw-bold text-dark">{{ $nota->nama_customer }}</div>
-                            @if($nota->nomor_wa)
-                                <small class="text-muted" style="font-size: 0.75rem;"><i class="bi bi-whatsapp text-success me-1"></i>{{ $nota->nomor_wa }}</small>
-                            @endif
+                            <div class="fw-bold text-dark mb-0.5">{{ $nota->nama_customer }}</div>
+                            <div class="small text-muted" style="font-size: 0.72rem;">STNK: {{ $nota->stnk_bpkb_name }}</div>
                         </td>
                         <td>
-                            <span class="text-dark">{{ $nota->nama_barang }}</span>
+                            <div class="fw-bold text-dark">{{ $nota->unit_type }}</div>
+                            <small class="text-muted" style="font-size: 0.72rem;">{{ $nota->warna ?: '-' }} &bull; {{ $nota->cara_pembelian ?: 'Credit' }}</small>
                         </td>
                         <td>
                             <span class="fw-bold text-success fs-6">
-                                Rp {{ number_format($nota->nominal_pembayaran, 0, ',', '.') }}
+                                Rp {{ $nota->formatted_total_bayar }}
                             </span>
                         </td>
                         <td class="text-end pe-4">
                             <div class="d-inline-flex align-items-center gap-2">
-                                <a href="{{ route('nota.show', $nota->id) }}" class="btn btn-outline-dark btn-sm py-1 px-2.5" style="font-size: 0.78rem;">
-                                    <i class="bi bi-eye me-1"></i> Detail
+                                <a href="{{ route('nota.show', $nota->id) }}" class="btn btn-outline-dark btn-sm py-1.5 px-3 d-inline-flex align-items-center gap-1.5" style="font-size: 0.8rem;">
+                                    <i class="bi bi-eye"></i>
+                                    <span>Detail</span>
                                 </a>
-                                <button type="button" class="btn btn-brand-primary btn-sm py-1 px-2.5" data-bs-toggle="modal" data-bs-target="#modalKirimBos{{ $nota->id }}" style="font-size: 0.78rem;">
-                                    <i class="bi bi-send me-1"></i> Kirim ke Bos
-                                </button>
+                                @if(auth()->check() && !auth()->user()->isSales())
+                                    <button type="button" class="btn btn-brand-primary btn-sm py-1.5 px-3 d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#modalKirimBos{{ $nota->id }}" style="font-size: 0.8rem;">
+                                        <i class="bi bi-send"></i>
+                                        <span>Kirim ke Bos</span>
+                                    </button>
+                                @endif
                             </div>
                         </td>
                     </tr>

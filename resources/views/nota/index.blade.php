@@ -150,13 +150,14 @@
         <table class="table table-custom align-middle">
             <thead>
                 <tr>
-                    <th style="width: 50px;" class="text-center">No.</th>
-                    <th style="width: 110px;">Tanggal</th>
+                    <th style="width: 45px;" class="text-center">No.</th>
+                    <th style="width: 105px;">Tanggal</th>
                     <th style="min-width: 170px;">Customer</th>
-                    <th style="min-width: 150px;">Barang / Jasa</th>
-                    <th style="width: 140px;">Nominal</th>
+                    <th style="min-width: 170px;">Type Unit & Warna</th>
+                    <th style="min-width: 120px;">Skema</th>
+                    <th style="width: 140px;">Total Bayar</th>
                     @if(auth()->check() && !auth()->user()->isSales())
-                        <th style="width: 140px;">Petugas / Sales</th>
+                        <th style="width: 130px;">Petugas / Sales</th>
                     @endif
                     <th style="min-width: {{ auth()->check() && auth()->user()->isSales() ? '220px' : '310px' }};" class="text-end pe-4">Aksi Dokumen</th>
                 </tr>
@@ -185,30 +186,50 @@
                             <div class="fw-bold text-dark mb-0.5">
                                 {{ $nota->nama_customer ?? '-' }}
                             </div>
+                            <div class="small text-muted" style="font-size: 0.72rem;">
+                                STNK: {{ $nota->stnk_bpkb_name }}
+                            </div>
                             @if($nota->nomor_wa)
-                                <div class="small text-muted d-inline-flex align-items-center gap-1" style="font-size: 0.75rem;">
+                                <div class="small text-muted d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;">
                                     <i class="bi bi-whatsapp text-success"></i>
                                     <span>{{ $nota->nomor_wa }}</span>
                                 </div>
-                            @else
-                                <span class="badge bg-light text-muted border fw-normal" style="font-size: 0.7rem;">
-                                    Tanpa No. WA
-                                </span>
                             @endif
                         </td>
 
-                        {{-- Nama Barang --}}
+                        {{-- Type Unit & Warna --}}
                         <td>
-                            <div class="text-dark fw-medium">
-                                {{ $nota->nama_barang ?? '-' }}
+                            <div class="text-dark fw-bold mb-0.5">
+                                {{ $nota->unit_type }}
+                            </div>
+                            <div class="small text-muted d-inline-flex align-items-center gap-1.5" style="font-size: 0.72rem;">
+                                <span class="badge bg-light text-dark border">{{ $nota->warna ?: '-' }}</span>
+                                <span>Thn {{ $nota->tahun_mobil ?: '2026' }}</span>
                             </div>
                         </td>
 
-                        {{-- Nominal --}}
+                        {{-- Skema Pembelian --}}
+                        <td>
+                            <span class="badge {{ $nota->cara_pembelian === 'Cash' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle' }} fw-semibold mb-0.5" style="font-size: 0.72rem;">
+                                {{ $nota->cara_pembelian ?: 'Credit' }}
+                            </span>
+                            @if($nota->cara_pembelian !== 'Cash' && $nota->nama_leasing && $nota->nama_leasing !== '-')
+                                <div class="small text-muted" style="font-size: 0.72rem;">
+                                    {{ $nota->nama_leasing }} {{ $nota->tenor && $nota->tenor !== '-' ? '• ' . $nota->tenor : '' }}
+                                </div>
+                            @endif
+                        </td>
+
+                        {{-- Total Bayar --}}
                         <td>
                             <div class="fw-bold text-success fs-6">
-                                Rp {{ number_format($nota->nominal_pembayaran ?? 0, 0, ',', '.') }}
+                                Rp {{ $nota->formatted_total_bayar }}
                             </div>
+                            @if($nota->total_diskon > 0)
+                                <div class="small text-danger" style="font-size: 0.7rem;">
+                                    Diskon: Rp {{ $nota->formatted_total_diskon }}
+                                </div>
+                            @endif
                         </td>
 
                         {{-- Petugas Pembuat (Tampil jika Admin Kantor / Super Admin) --}}

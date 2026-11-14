@@ -9,9 +9,17 @@ class NotaKontan extends Model
     protected $fillable = [
         'user_id',
         'nama_customer',
+        'nama_stnk_bpkb',
+        'type_unit',
+        'warna',
         'nama_barang',
         'items',
         'nominal_pembayaran',
+        'total_diskon',
+        'cara_pembelian',
+        'nama_leasing',
+        'tenor',
+        'tahun_mobil',
         'tanggal_upload',
         'bukti_pembayaran',
         'nama_file',
@@ -29,8 +37,41 @@ class NotaKontan extends Model
         return [
             'tanggal_upload' => 'date',
             'nominal_pembayaran' => 'integer',
+            'total_diskon' => 'integer',
             'items' => 'array',
         ];
+    }
+
+    /**
+     * Rincian nama STNK/BPKB
+     */
+    public function getStnkBpkbNameAttribute(): string
+    {
+        return $this->nama_stnk_bpkb ?: ($this->nama_customer ?: '-');
+    }
+
+    /**
+     * Tipe unit kendaraan
+     */
+    public function getUnitTypeAttribute(): string
+    {
+        return $this->type_unit ?: ($this->nama_barang ?: '-');
+    }
+
+    /**
+     * Format angka total bayar
+     */
+    public function getFormattedTotalBayarAttribute(): string
+    {
+        return number_format($this->nominal_pembayaran ?: 0, 0, ',', '.');
+    }
+
+    /**
+     * Format angka total diskon
+     */
+    public function getFormattedTotalDiskonAttribute(): string
+    {
+        return number_format($this->total_diskon ?: 0, 0, ',', '.');
     }
 
     /**
@@ -42,14 +83,53 @@ class NotaKontan extends Model
             return $this->items;
         }
 
+        $nama = $this->unit_type;
+        if ($this->warna) {
+            $nama .= ' (' . $this->warna . ')';
+        }
+
         return [
             [
-                'nama' => $this->nama_barang ?: 'Barang / Jasa',
+                'nama' => $nama,
                 'qty' => 1,
                 'harga' => (int) ($this->nominal_pembayaran ?: 0),
                 'subtotal' => (int) ($this->nominal_pembayaran ?: 0),
             ]
         ];
+    }
+
+    /**
+     * Teks pesan WhatsApp untuk Konfirmasi DO ke Customer
+     */
+    public function getCustomerWaMessage(): string
+    {
+        $timestamp = $this->created_at 
+            ? $this->created_at->format('d/m/Y H:i:s') 
+            : ($this->tanggal_upload ? $this->tanggal_upload->format('d/m/Y 12:00:00') : date('d/m/Y H:i:s'));
+        
+        $stnk = $this->stnk_bpkb_name;
+        $unit = $this->unit_type;
+        $warna = $this->warna ?: '-';
+        $totalBayar = $this->formatted_total_bayar;
+        $totalDiskon = $this->formatted_total_diskon;
+        $cara = $this->cara_pembelian ?: 'Credit';
+        $leasing = ($cara === 'Cash') ? '-' : ($this->nama_leasing ?: '-');
+        $tenor = ($cara === 'Cash') ? '-' : ($this->tenor ?: '-');
+        $tahun = $this->tahun_mobil ?: '2026';
+
+        return "Data Konfirmasi DO ke Customer\n\n"
+            . "No HP Customer : {$this->nomor_wa}\n"
+            . "Nama Customer : {$this->nama_customer}\n"
+            . "Nama STNK/BPKB : {$stnk}\n"
+            . "Type Unit : {$unit}\n"
+            . "Warna : {$warna}\n"
+            . "Total Bayar : {$totalBayar}\n"
+            . "Total Diskon : {$totalDiskon}\n"
+            . "Cara Pembelian : {$cara}\n"
+            . "Nama Leasing : {$leasing}\n"
+            . "Tenor : {$tenor}\n"
+            . "Tahun Mobil : {$tahun}\n"
+            . "Timestamp : {$timestamp}";
     }
 
     /**
@@ -65,33 +145,44 @@ class NotaKontan extends Model
             $nomor = '62' . substr($nomor, 1);
         }
 
-        $tanggal = $this->tanggal_upload ? \Carbon\Carbon::parse($this->tanggal_upload)->format('d-m-Y') : date('d-m-Y');
-        $pdfUrl = route('nota.pdf', $this->id);
-
-        $items = $this->items_list;
-        $rincianBarang = '';
-        if (count($items) > 1) {
-            $rincianBarang = "\n";
-            foreach ($items as $idx => $it) {
-                $no = $idx + 1;
-                $sub = number_format($it['subtotal'] ?? (($it['qty'] ?? 1) * ($it['harga'] ?? 0)), 0, ',', '.');
-                $rincianBarang .= "  {$no}. {$it['nama']} ({$it['qty']}x) = Rp {$sub}\n";
-            }
-        } else {
-            $rincianBarang = ' ' . ($this->nama_barang ?: 'Barang / Jasa');
-        }
-
-        $pesan = "Halo {$this->nama_customer},\n"
-            . "Terima kasih atas transaksi Anda. Berikut rincian tanda bukti pembayaran nota kontan:\n\n"
-            . "🧾 No. Nota: #" . str_pad($this->id, 5, '0', STR_PAD_LEFT) . "\n"
-            . "📦 Rincian Barang/Jasa:{$rincianBarang}\n"
-            . "💰 Total Pembayaran: Rp " . number_format($this->nominal_pembayaran, 0, ',', '.') . "\n"
-            . "📅 Tanggal Pembayaran: {$tanggal}\n\n"
-            . "📄 Buka & Tinjau Berkas Nota PDF Resmi Anda di sini:\n"
-            . "{$pdfUrl}\n\n"
-            . "Status: LUNAS. Simpan pesan ini sebagai bukti pembayaran yang sah.";
+        $pesan = $this->getCustomerWaMessage();
 
         return 'https://api.whatsapp.com/send?phone=' . $nomor . '&text=' . rawurlencode($pesan);
+    }
+
+    /**
+     * Teks pesan WhatsApp konfirmasi untuk Bos / Pimpinan
+     */
+    public function getBossWaMessage(KontakBos $boss = null): string
+    {
+        $customer = $this->nama_customer ?: '-';
+        $stnk = $this->stnk_bpkb_name;
+        $unit = $this->unit_type;
+        $warna = $this->warna ?: '-';
+        $totalBayar = $this->formatted_total_bayar;
+        $totalDiskon = $this->formatted_total_diskon;
+        $cara = $this->cara_pembelian ?: 'Credit';
+        $leasing = ($cara === 'Cash') ? '-' : ($this->nama_leasing ?: '-');
+        $tenor = ($cara === 'Cash') ? '-' : ($this->tenor ?: '-');
+        $tahun = $this->tahun_mobil ?: '2026';
+
+        return "Yth Bapak/Ibu. {$customer}\n\n"
+            . "Kami dari ASTRA DAIHATSU Palembang Veteran\n"
+            . "Bersama ini kami ingin melakukan konfirmasi data pembelian mobil Bapak/Ibu di Astra Daihatsu\n"
+            . "Mohon Konfirmasinya.\n"
+            . "OK, jika data sesuai.\n"
+            . "NO, Jika data tidak sesuai.\n\n"
+            . "Nama Customer : {$customer}\n"
+            . "Nama STNK/BPKB : {$stnk}\n"
+            . "Type Unit : {$unit}\n"
+            . "Warna : {$warna}\n"
+            . "Total Bayar : {$totalBayar}\n"
+            . "Total Diskon : {$totalDiskon}\n"
+            . "Cara Pembelian : {$cara}\n"
+            . "Nama Leasing : {$leasing}\n"
+            . "Tenor : {$tenor}\n"
+            . "Tahun Mobil : {$tahun}\n\n"
+            . "Terimakasih atas perhatiannya.";
     }
 
     /**
@@ -100,33 +191,7 @@ class NotaKontan extends Model
     public function getWaBossUrl(KontakBos $boss): string
     {
         $nomor = $boss->wa_link;
-        $jabatan = $boss->jabatan ? " ({$boss->jabatan})" : '';
-        $tanggal = $this->tanggal_upload ? \Carbon\Carbon::parse($this->tanggal_upload)->format('d-m-Y') : date('d-m-Y');
-        $pdfUrl = route('nota.pdf', $this->id);
-
-        $items = $this->items_list;
-        $rincianBarang = '';
-        if (count($items) > 1) {
-            $rincianBarang = "\n";
-            foreach ($items as $idx => $it) {
-                $no = $idx + 1;
-                $sub = number_format($it['subtotal'] ?? (($it['qty'] ?? 1) * ($it['harga'] ?? 0)), 0, ',', '.');
-                $rincianBarang .= "  {$no}. {$it['nama']} ({$it['qty']}x) = Rp {$sub}\n";
-            }
-        } else {
-            $rincianBarang = ' ' . ($this->nama_barang ?: 'Barang / Jasa');
-        }
-
-        $pesan = "Halo {$boss->nama}{$jabatan},\n"
-            . "Berikut laporan nota pembayaran transaksi baru:\n\n"
-            . "🧾 No. Nota: #" . str_pad($this->id, 5, '0', STR_PAD_LEFT) . "\n"
-            . "👤 Customer: {$this->nama_customer}\n"
-            . "📦 Rincian Barang:{$rincianBarang}\n"
-            . "💰 Total Nominal: Rp " . number_format($this->nominal_pembayaran, 0, ',', '.') . "\n"
-            . "📅 Tanggal: {$tanggal}\n\n"
-            . "📄 Dokumen Nota PDF resmi dapat langsung dilihat di tautan berikut:\n"
-            . "{$pdfUrl}\n\n"
-            . "Laporan ini dikirim otomatis melalui Aplikasi Nota Kontan.";
+        $pesan = $this->getBossWaMessage($boss);
 
         return 'https://api.whatsapp.com/send?phone=' . $nomor . '&text=' . rawurlencode($pesan);
     }

@@ -13,10 +13,18 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('nama_customer')->nullable();
+            $table->string('nama_stnk_bpkb')->nullable();
+            $table->string('type_unit')->nullable();
+            $table->string('warna')->nullable();
             $table->string('nomor_wa', 20)->nullable();
             $table->string('nama_barang')->nullable();
             $table->text('items')->nullable();
             $table->unsignedBigInteger('nominal_pembayaran')->default(0);
+            $table->decimal('total_diskon', 15, 2)->default(0)->nullable();
+            $table->string('cara_pembelian', 20)->default('Credit')->nullable();
+            $table->string('nama_leasing', 100)->nullable();
+            $table->string('tenor', 50)->nullable();
+            $table->string('tahun_mobil', 10)->default('2026')->nullable();
             $table->string('bukti_pembayaran')->nullable();
             $table->string('nama_file')->nullable();
             $table->string('path_file')->nullable();

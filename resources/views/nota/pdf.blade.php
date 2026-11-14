@@ -186,33 +186,53 @@
     <table class="header-table" cellpadding="0" cellspacing="0">
         <tr>
             <td style="vertical-align: middle;">
-                <div class="brand-title">NOTA KONTAN</div>
-                <div class="brand-subtitle">Tanda Bukti Penerimaan Pembayaran Tunai</div>
+                <div class="brand-title">ASTRA DAIHATSU</div>
+                <div class="brand-subtitle">Palembang Veteran &bull; Konfirmasi Pembelian Unit Mobil (DO)</div>
             </td>
             <td class="doc-badge" style="vertical-align: middle;">
-                <div class="doc-number">#NK-{{ str_pad($nota->id, 5, '0', STR_PAD_LEFT) }}</div>
+                <div class="doc-number">#DO-{{ str_pad($nota->id, 5, '0', STR_PAD_LEFT) }}</div>
                 <div class="doc-date">Tanggal: {{ $nota->tanggal_upload ? \Carbon\Carbon::parse($nota->tanggal_upload)->format('d/m/Y') : '-' }}</div>
-                <div><span class="status-pill">LUNAS</span></div>
+                <div><span class="status-pill">{{ $nota->cara_pembelian ?: 'Credit' }}</span></div>
             </td>
         </tr>
     </table>
 
-    {{-- Customer & Transaction Meta --}}
+    {{-- Customer & Vehicle Transaction Meta --}}
     <table class="meta-table" cellpadding="0" cellspacing="0">
         <tr>
-            <td class="meta-label">Diterima Dari</td>
+            <td class="meta-label">Nama Customer</td>
             <td class="meta-value">: {{ $nota->nama_customer ?? '-' }}</td>
+            <td class="meta-label" style="width: 120px;">Type Unit</td>
+            <td class="meta-value">: {{ $nota->unit_type }}</td>
         </tr>
-        @if($nota->nomor_wa)
+        <tr>
+            <td class="meta-label">Nama STNK / BPKB</td>
+            <td>: {{ $nota->stnk_bpkb_name }}</td>
+            <td class="meta-label">Warna / Tahun</td>
+            <td>: {{ $nota->warna ?: '-' }} / {{ $nota->tahun_mobil ?: '2026' }}</td>
+        </tr>
         <tr>
             <td class="meta-label">Kontak WhatsApp</td>
-            <td>: {{ $nota->nomor_wa }}</td>
+            <td>: {{ $nota->nomor_wa ?: '-' }}</td>
+            <td class="meta-label">Cara Pembelian</td>
+            <td>: {{ $nota->cara_pembelian ?: 'Credit' }}</td>
+        </tr>
+        @if($nota->cara_pembelian !== 'Cash')
+        <tr>
+            <td class="meta-label">Nama Leasing</td>
+            <td>: {{ $nota->nama_leasing ?: '-' }}</td>
+            <td class="meta-label">Tenor</td>
+            <td>: {{ $nota->tenor ?: '-' }}</td>
         </tr>
         @endif
+        @if($nota->total_diskon > 0)
         <tr>
-            <td class="meta-label">Tanggal Pelaporan</td>
-            <td>: {{ $nota->created_at ? $nota->created_at->format('d F Y, H:i') . ' WIB' : '-' }}</td>
+            <td class="meta-label">Total Diskon</td>
+            <td style="color: #b91c1c; font-weight: bold;">: Rp {{ $nota->formatted_total_diskon }}</td>
+            <td class="meta-label">Petugas Sales</td>
+            <td>: {{ $nota->user ? $nota->user->name : 'Astra Daihatsu' }}</td>
         </tr>
+        @endif
     </table>
 
     {{-- Items Table --}}

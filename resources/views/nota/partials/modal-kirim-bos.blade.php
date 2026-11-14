@@ -16,12 +16,12 @@
             </div>
             
             <div class="modal-body p-3 p-md-4" style="-webkit-overflow-scrolling: touch; overflow-y: auto;">
-                {{-- Ringkasan Dokumen --}}
+                {{-- Ringkasan Dokumen Konfirmasi DO --}}
                 <div class="p-3 rounded-3 mb-3" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
                     <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
-                        <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.05em;">Ringkasan Nota</span>
+                        <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.05em;">Konfirmasi DO Astra Daihatsu</span>
                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-semibold">
-                            Rp {{ number_format($nota->nominal_pembayaran, 0, ',', '.') }}
+                            Total: Rp {{ $nota->formatted_total_bayar }}
                         </span>
                     </div>
 
@@ -29,11 +29,17 @@
                         <div class="col-4 text-muted">Customer</div>
                         <div class="col-8 fw-semibold text-dark">{{ $nota->nama_customer }}</div>
 
-                        <div class="col-4 text-muted">Barang/Jasa</div>
-                        <div class="col-8 text-dark">{{ $nota->nama_barang }}</div>
+                        <div class="col-4 text-muted">STNK/BPKB</div>
+                        <div class="col-8 text-dark">{{ $nota->stnk_bpkb_name }}</div>
 
-                        <div class="col-4 text-muted">Tanggal</div>
-                        <div class="col-8 text-dark">{{ \Carbon\Carbon::parse($nota->tanggal_upload)->format('d F Y') }}</div>
+                        <div class="col-4 text-muted">Type Unit</div>
+                        <div class="col-8 text-dark fw-semibold">{{ $nota->unit_type }} ({{ $nota->warna ?: '-' }})</div>
+
+                        <div class="col-4 text-muted">Skema</div>
+                        <div class="col-8 text-dark">{{ $nota->cara_pembelian ?: 'Credit' }} {{ $nota->cara_pembelian !== 'Cash' && $nota->nama_leasing ? '• ' . $nota->nama_leasing : '' }}</div>
+
+                        <div class="col-4 text-muted">Diskon</div>
+                        <div class="col-8 text-danger fw-semibold">Rp {{ $nota->formatted_total_diskon }}</div>
                     </div>
 
                     <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center">

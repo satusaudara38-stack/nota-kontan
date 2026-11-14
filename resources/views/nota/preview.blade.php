@@ -140,46 +140,52 @@
             {{-- Header Faktur --}}
             <div class="brand-header d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
                 <div>
-                    <div class="brand-logo-text">NOTA KONTAN</div>
+                    <div class="brand-logo-text">ASTRA DAIHATSU</div>
                     <div class="text-muted small text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.05em;">
-                        Tanda Bukti Penerimaan Pembayaran Tunai
+                        Palembang Veteran &bull; Konfirmasi Pembelian Unit Mobil (DO)
                     </div>
                 </div>
 
                 <div class="text-start text-sm-end">
                     <div class="fw-bold fs-6 text-dark">
-                        #NK-{{ str_pad($nota->id, 5, '0', STR_PAD_LEFT) }}
+                        #DO-{{ str_pad($nota->id, 5, '0', STR_PAD_LEFT) }}
                     </div>
                     <div class="text-muted small" style="font-size: 0.78rem;">
                         Tanggal: {{ $nota->tanggal_upload ? \Carbon\Carbon::parse($nota->tanggal_upload)->format('d/m/Y') : '-' }}
                     </div>
-                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 fw-bold mt-1" style="font-size: 0.72rem;">
-                        LUNAS
+                    <span class="badge {{ $nota->cara_pembelian === 'Cash' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle' }} px-2.5 py-1 fw-bold mt-1" style="font-size: 0.72rem;">
+                        {{ $nota->cara_pembelian ?: 'Credit' }}
                     </span>
                 </div>
             </div>
 
             {{-- Metadata Transaksi & Customer --}}
-            <div class="row g-2 mb-4 small">
+            <div class="row g-3 mb-4 small p-3 rounded-3" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
                 <div class="col-sm-6">
-                    <div class="text-muted" style="font-size: 0.75rem;">Diterima Dari (Customer):</div>
+                    <div class="text-muted" style="font-size: 0.72rem;">Nama Customer:</div>
                     <div class="fw-bold text-dark fs-6">{{ $nota->nama_customer ?? '-' }}</div>
+                    <div class="text-muted mt-1" style="font-size: 0.72rem;">Nama STNK / BPKB:</div>
+                    <div class="fw-semibold text-dark">{{ $nota->stnk_bpkb_name }}</div>
                     @if($nota->nomor_wa)
-                        <div class="text-muted d-flex align-items-center gap-1 mt-0.5">
+                        <div class="text-muted d-flex align-items-center gap-1 mt-1">
                             <i class="bi bi-whatsapp text-success"></i>
                             <span>{{ $nota->nomor_wa }}</span>
                         </div>
                     @endif
                 </div>
 
-                <div class="col-sm-6 text-sm-end mt-2 mt-sm-0">
-                    <div class="text-muted" style="font-size: 0.75rem;">Tanggal Pencatatan:</div>
-                    <div class="fw-semibold text-dark">
-                        {{ $nota->created_at ? $nota->created_at->format('d F Y, H:i') . ' WIB' : '-' }}
-                    </div>
-                    <div class="text-muted" style="font-size: 0.75rem;">
-                        Status Verifikasi: <span class="text-success fw-semibold">Terverifikasi Sah</span>
-                    </div>
+                <div class="col-sm-6">
+                    <div class="text-muted" style="font-size: 0.72rem;">Type Unit Mobil:</div>
+                    <div class="fw-bold text-dark fs-6">{{ $nota->unit_type }}</div>
+                    <div class="text-muted mt-1" style="font-size: 0.72rem;">Warna & Tahun:</div>
+                    <div class="fw-semibold text-dark">{{ $nota->warna ?: '-' }} &bull; Tahun {{ $nota->tahun_mobil ?: '2026' }}</div>
+                    @if($nota->cara_pembelian !== 'Cash')
+                        <div class="text-muted mt-1" style="font-size: 0.72rem;">Leasing & Tenor:</div>
+                        <div class="fw-semibold text-primary">{{ $nota->nama_leasing ?: '-' }} ({{ $nota->tenor ?: '-' }})</div>
+                    @else
+                        <div class="text-muted mt-1" style="font-size: 0.72rem;">Skema Pembelian:</div>
+                        <div class="fw-semibold text-success">Pembelian Tunai (Cash)</div>
+                    @endif
                 </div>
             </div>
 

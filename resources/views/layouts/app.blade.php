@@ -230,10 +230,10 @@
         <div class="container-fluid px-3 px-md-4">
             {{-- Brand Logo di Sudut Kiri --}}
             <a class="navbar-brand d-flex align-items-center text-decoration-none me-auto" href="{{ route('dashboard') }}">
-                <span class="navbar-brand-badge">NK</span>
+                <span class="navbar-brand-badge">AD</span>
                 <div>
-                    <div class="navbar-brand-title">NOTA KONTAN</div>
-                    <div class="navbar-brand-subtitle">Financial Transaction Manager</div>
+                    <div class="navbar-brand-title">ASTRA DAIHATSU</div>
+                    <div class="navbar-brand-subtitle">Palembang Veteran &bull; Delivery Order</div>
                 </div>
             </a>
 

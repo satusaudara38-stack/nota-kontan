@@ -112,22 +112,40 @@ class NotaKontanController extends Controller
     {
         $validated = $request->validate([
             'nama_customer' => 'required|string|max:255',
-            'nomor_wa' => 'required|string|max:20',
+            'nomor_wa' => 'required|string|max:25',
+            'nama_stnk_bpkb' => 'nullable|string|max:255',
+            'type_unit' => 'required|string|max:255',
+            'warna' => 'required|string|max:100',
+            'nominal_pembayaran' => 'required|numeric|min:0', // Total Bayar
+            'total_diskon' => 'nullable|numeric|min:0',
+            'cara_pembelian' => 'required|string|in:Credit,Cash',
+            'nama_leasing' => 'nullable|string|max:100',
+            'tenor' => 'nullable|string|max:50',
+            'tahun_mobil' => 'required|string|max:10',
             'tanggal_upload' => 'required|date',
-            'nama_barang' => 'nullable|string|max:255',
-            'nominal_pembayaran' => 'nullable|numeric|min:0',
             'bukti_pembayaran' => 'required|image|mimes:jpg,jpeg,png,webp,heic,heif|max:20480',
+            'nama_barang' => 'nullable|string|max:255',
             'items' => 'nullable|array',
             'items.*.nama' => 'nullable|string|max:255',
             'items.*.qty' => 'nullable|numeric|min:1',
             'items.*.harga' => 'nullable|numeric|min:0',
         ]);
 
-        // Proses rincian item dinamis
-        $items = [];
-        $totalNominal = 0;
-        $namaBarangList = [];
+        if (empty($validated['nama_stnk_bpkb'])) {
+            $validated['nama_stnk_bpkb'] = $validated['nama_customer'];
+        }
 
+        if ($validated['cara_pembelian'] === 'Cash') {
+            $validated['nama_leasing'] = '-';
+            $validated['tenor'] = '-';
+        }
+
+        $validated['total_diskon'] = (int) ($request->input('total_diskon', 0) ?: 0);
+        $totalNominal = (int) $validated['nominal_pembayaran'];
+        $namaBarangSummary = $validated['type_unit'] . ' (' . $validated['warna'] . ')';
+
+        // Proses rincian item jika ada
+        $items = [];
         if ($request->has('items') && is_array($request->items)) {
             foreach ($request->items as $item) {
                 $nama = trim($item['nama'] ?? '');
@@ -144,31 +162,18 @@ class NotaKontanController extends Controller
                     'harga' => $harga,
                     'subtotal' => $subtotal,
                 ];
-
-                $totalNominal += $subtotal;
-                $namaBarangList[] = $qty > 1 ? "{$nama} ({$qty}x)" : $nama;
             }
         }
 
-        // Fallback jika tidak mengisi rincian item baris
         if (empty($items)) {
-            $namaBarangUtama = $request->filled('nama_barang') ? $request->nama_barang : 'Barang / Jasa';
-            $nominal = (int) $request->input('nominal_pembayaran', 0);
             $items = [
                 [
-                    'nama' => $namaBarangUtama,
+                    'nama' => $validated['type_unit'] . ' - ' . $validated['warna'] . ' (' . $validated['tahun_mobil'] . ')',
                     'qty' => 1,
-                    'harga' => $nominal,
-                    'subtotal' => $nominal,
+                    'harga' => $totalNominal,
+                    'subtotal' => $totalNominal,
                 ]
             ];
-            $totalNominal = $nominal;
-            $namaBarangSummary = $namaBarangUtama;
-        } else {
-            $namaBarangSummary = implode(', ', $namaBarangList);
-            if ($totalNominal === 0 && $request->filled('nominal_pembayaran')) {
-                $totalNominal = (int) $request->nominal_pembayaran;
-            }
         }
 
         // Simpan bukti pembayaran ke storage
@@ -189,7 +194,7 @@ class NotaKontanController extends Controller
 
         return redirect()
             ->route('nota.index')
-            ->with('success', 'Data nota kontan berhasil disimpan.');
+            ->with('success', 'Data transaksi pembelian mobil / nota kontan berhasil disimpan.');
     }
 
     public function show(NotaKontan $nota)
@@ -301,22 +306,40 @@ class NotaKontanController extends Controller
 
         $validated = $request->validate([
             'nama_customer' => 'required|string|max:255',
-            'nomor_wa' => 'nullable|string|max:20',
+            'nomor_wa' => 'required|string|max:25',
+            'nama_stnk_bpkb' => 'nullable|string|max:255',
+            'type_unit' => 'required|string|max:255',
+            'warna' => 'required|string|max:100',
+            'nominal_pembayaran' => 'required|numeric|min:0', // Total Bayar
+            'total_diskon' => 'nullable|numeric|min:0',
+            'cara_pembelian' => 'required|string|in:Credit,Cash',
+            'nama_leasing' => 'nullable|string|max:100',
+            'tenor' => 'nullable|string|max:50',
+            'tahun_mobil' => 'required|string|max:10',
             'tanggal_upload' => 'required|date',
-            'nama_barang' => 'nullable|string|max:255',
-            'nominal_pembayaran' => 'nullable|numeric|min:0',
             'bukti_pembayaran' => 'nullable|image|mimes:jpg,jpeg,png,webp,heic,heif|max:20480',
+            'nama_barang' => 'nullable|string|max:255',
             'items' => 'nullable|array',
             'items.*.nama' => 'nullable|string|max:255',
             'items.*.qty' => 'nullable|numeric|min:1',
             'items.*.harga' => 'nullable|numeric|min:0',
         ]);
 
+        if (empty($validated['nama_stnk_bpkb'])) {
+            $validated['nama_stnk_bpkb'] = $validated['nama_customer'];
+        }
+
+        if ($validated['cara_pembelian'] === 'Cash') {
+            $validated['nama_leasing'] = '-';
+            $validated['tenor'] = '-';
+        }
+
+        $totalDiskon = (int) ($request->input('total_diskon', 0) ?: 0);
+        $totalNominal = (int) $validated['nominal_pembayaran'];
+        $namaBarangSummary = $validated['type_unit'] . ' (' . $validated['warna'] . ')';
+
         // Proses rincian item dinamis
         $items = [];
-        $totalNominal = 0;
-        $namaBarangList = [];
-
         if ($request->has('items') && is_array($request->items)) {
             foreach ($request->items as $item) {
                 $nama = trim($item['nama'] ?? '');
@@ -333,36 +356,32 @@ class NotaKontanController extends Controller
                     'harga' => $harga,
                     'subtotal' => $subtotal,
                 ];
-
-                $totalNominal += $subtotal;
-                $namaBarangList[] = $qty > 1 ? "{$nama} ({$qty}x)" : $nama;
             }
         }
 
         if (empty($items)) {
-            $namaBarangUtama = $request->filled('nama_barang') ? $request->nama_barang : ($nota->nama_barang ?: 'Barang / Jasa');
-            $nominal = (int) $request->input('nominal_pembayaran', $nota->nominal_pembayaran);
             $items = [
                 [
-                    'nama' => $namaBarangUtama,
+                    'nama' => $validated['type_unit'] . ' - ' . $validated['warna'] . ' (' . $validated['tahun_mobil'] . ')',
                     'qty' => 1,
-                    'harga' => $nominal,
-                    'subtotal' => $nominal,
+                    'harga' => $totalNominal,
+                    'subtotal' => $totalNominal,
                 ]
             ];
-            $totalNominal = $nominal;
-            $namaBarangSummary = $namaBarangUtama;
-        } else {
-            $namaBarangSummary = implode(', ', $namaBarangList);
-            if ($totalNominal === 0 && $request->filled('nominal_pembayaran')) {
-                $totalNominal = (int) $request->nominal_pembayaran;
-            }
         }
 
         $data = [
             'nama_customer' => $validated['nama_customer'],
+            'nama_stnk_bpkb' => $validated['nama_stnk_bpkb'],
+            'type_unit' => $validated['type_unit'],
+            'warna' => $validated['warna'],
             'nama_barang' => $namaBarangSummary,
             'nominal_pembayaran' => $totalNominal,
+            'total_diskon' => $totalDiskon,
+            'cara_pembelian' => $validated['cara_pembelian'],
+            'nama_leasing' => $validated['nama_leasing'] ?? '-',
+            'tenor' => $validated['tenor'] ?? '-',
+            'tahun_mobil' => $validated['tahun_mobil'],
             'items' => $items,
             'tanggal_upload' => $validated['tanggal_upload'],
             'nomor_wa' => $validated['nomor_wa'] ?? null,
@@ -385,6 +404,6 @@ class NotaKontanController extends Controller
 
         return redirect()
             ->route('nota.index')
-            ->with('success', 'Nota kontan berhasil diperbarui.');
+            ->with('success', 'Data transaksi pembelian mobil / nota kontan berhasil diperbarui.');
     }
 }
