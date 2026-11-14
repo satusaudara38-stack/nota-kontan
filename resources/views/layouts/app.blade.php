@@ -94,6 +94,45 @@
             font-weight: 600;
         }
 
+        /* User Profile Button in Navbar */
+        .user-profile-btn {
+            background-color: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.16) !important;
+            color: #ffffff !important;
+            border-radius: 8px;
+            padding: 0.35rem 0.75rem;
+            transition: all 0.15s ease-in-out;
+        }
+        .user-profile-btn:hover,
+        .user-profile-btn:focus,
+        .user-profile-btn:active,
+        .user-profile-btn.show {
+            background-color: rgba(255, 255, 255, 0.18) !important;
+            border-color: rgba(255, 255, 255, 0.35) !important;
+            color: #ffffff !important;
+            box-shadow: none !important;
+        }
+        .user-profile-btn .profile-name {
+            color: #ffffff !important;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+        .user-profile-btn .profile-role {
+            color: #cbd5e1 !important;
+            font-size: 0.6875rem;
+            line-height: 1;
+        }
+        .user-profile-btn::after {
+            color: #cbd5e1;
+            margin-left: 0.5rem;
+            vertical-align: 0.15em;
+        }
+        .user-profile-btn:hover::after,
+        .user-profile-btn.show::after {
+            color: #ffffff;
+        }
+
         /* Card & Panel Styling */
         .card-custom {
             background: #ffffff;
@@ -226,29 +265,29 @@
                     {{-- User Profile & Logout --}}
                     @auth
                         <li class="nav-item dropdown ms-lg-2 mt-2 mt-lg-0 border-top border-lg-0 pt-2 pt-lg-0">
-                            <button class="btn btn-sm btn-outline-light border-0 py-1 px-2.5 d-flex align-items-center gap-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <span class="rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; background-color: #2563eb; color: #fff; font-size: 0.75rem;">
+                            <button class="btn user-profile-btn d-flex align-items-center gap-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 28px; height: 28px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; font-size: 0.75rem;">
                                     {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
                                 </span>
-                                <div class="text-start d-none d-sm-block">
-                                    <div class="fw-semibold text-white small" style="line-height: 1.1; font-size: 0.78rem;">{{ auth()->user()->name }}</div>
-                                    <div class="text-white-50" style="font-size: 0.68rem;">{{ auth()->user()->role_label }}</div>
+                                <div class="text-start d-none d-sm-block pe-1">
+                                    <div class="profile-name">{{ auth()->user()->name }}</div>
+                                    <div class="profile-role">{{ auth()->user()->role_label }}</div>
                                 </div>
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow border p-2" style="font-size: 0.8125rem; min-width: 220px;">
-                                <li class="px-2 py-1.5 border-bottom mb-1">
-                                    <div class="fw-bold text-dark">{{ auth()->user()->name }}</div>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border p-2 mt-2" style="font-size: 0.8125rem; min-width: 220px; border-radius: 10px;">
+                                <li class="px-2 py-2 border-bottom mb-1 bg-light rounded-top">
+                                    <div class="fw-bold text-dark" style="font-size: 0.875rem;">{{ auth()->user()->name }}</div>
                                     <div class="text-muted small text-truncate">{{ auth()->user()->email }}</div>
-                                    <span class="badge {{ auth()->user()->role_badge_class }} mt-1 fw-semibold" style="font-size: 0.68rem;">
+                                    <span class="badge {{ auth()->user()->role_badge_class }} mt-1.5 fw-semibold" style="font-size: 0.7rem;">
                                         {{ auth()->user()->role_label }}
                                     </span>
                                 </li>
                                 <li>
                                     <form action="{{ route('logout') }}" method="POST">
                                         @csrf
-                                        <button type="submit" class="dropdown-item py-1.5 px-2 text-danger d-flex align-items-center gap-2 rounded">
+                                        <button type="submit" class="dropdown-item py-2 px-2 text-danger d-flex align-items-center gap-2 rounded mt-1">
                                             <i class="bi bi-box-arrow-right"></i>
-                                            <span>Keluar (Logout)</span>
+                                            <span class="fw-medium">Keluar (Logout)</span>
                                         </button>
                                     </form>
                                 </li>
