@@ -41,8 +41,8 @@
             <div class="row g-2 align-items-end">
 
                 {{-- Filter Tanggal Dari --}}
-                <div class="col-6 col-md-{{ auth()->check() && !auth()->user()->isSales() ? '2' : '3' }}">
-                    <label for="tanggal_dari" class="form-label small fw-semibold text-dark mb-1">
+                <div class="col-6 col-sm-4 col-lg-2">
+                    <label for="tanggal_dari" class="form-label small fw-semibold text-dark mb-1 text-nowrap">
                         <i class="bi bi-calendar-event me-1 text-muted"></i>Dari Tanggal
                     </label>
                     <input type="date"
@@ -54,8 +54,8 @@
                 </div>
 
                 {{-- Filter Tanggal Sampai --}}
-                <div class="col-6 col-md-{{ auth()->check() && !auth()->user()->isSales() ? '2' : '3' }}">
-                    <label for="tanggal_sampai" class="form-label small fw-semibold text-dark mb-1">
+                <div class="col-6 col-sm-4 col-lg-2">
+                    <label for="tanggal_sampai" class="form-label small fw-semibold text-dark mb-1 text-nowrap">
                         <i class="bi bi-calendar-event me-1 text-muted"></i>Sampai Tanggal
                     </label>
                     <input type="date"
@@ -67,21 +67,21 @@
                 </div>
 
                 {{-- Filter Kategori Transaksi (Mobil vs Sparepart) --}}
-                <div class="col-6 col-md-2">
-                    <label for="kategori" class="form-label small fw-semibold text-dark mb-1">
+                <div class="col-6 col-sm-4 col-lg-2">
+                    <label for="kategori" class="form-label small fw-semibold text-dark mb-1 text-nowrap">
                         <i class="bi bi-tags me-1 text-muted"></i>Kategori
                     </label>
                     <select name="kategori" id="kategori" class="form-select form-select-sm" onchange="document.getElementById('formFilter').submit()">
                         <option value="">Semua Kategori</option>
                         <option value="mobil" {{ request('kategori') === 'mobil' ? 'selected' : '' }}>🚗 Unit Mobil (DO)</option>
-                        <option value="sparepart" {{ request('kategori') === 'sparepart' ? 'selected' : '' }}>🔧 Sparepart & Servis</option>
+                        <option value="sparepart" {{ request('kategori') === 'sparepart' ? 'selected' : '' }}>🔧 Sparepart</option>
                     </select>
                 </div>
 
                 {{-- Filter Petugas / Sales (Khusus Super Admin & Admin Kantor) --}}
                 @if(auth()->check() && !auth()->user()->isSales() && isset($salesList) && $salesList->isNotEmpty())
-                    <div class="col-12 col-md-3">
-                        <label for="sales_id" class="form-label small fw-semibold text-dark mb-1">
+                    <div class="col-6 col-sm-4 col-lg-2">
+                        <label for="sales_id" class="form-label small fw-semibold text-dark mb-1 text-nowrap">
                             <i class="bi bi-person-badge me-1 text-muted"></i>Petugas / Sales
                         </label>
                         <select name="sales_id" id="sales_id" class="form-select form-select-sm" onchange="document.getElementById('formFilter').submit()">
@@ -96,8 +96,8 @@
                 @endif
 
                 {{-- Pencarian Nama --}}
-                <div class="col-12 col-md-{{ auth()->check() && !auth()->user()->isSales() ? '3' : '4' }}">
-                    <label for="cari" class="form-label small fw-semibold text-dark mb-1">
+                <div class="col-12 col-sm-8 col-lg">
+                    <label for="cari" class="form-label small fw-semibold text-dark mb-1 text-nowrap">
                         <i class="bi bi-search me-1 text-muted"></i>Cari Customer / Barang
                     </label>
                     <input type="text"
@@ -105,19 +105,22 @@
                            name="cari"
                            class="form-control form-control-sm"
                            value="{{ request('cari') }}"
-                           placeholder="Nama customer atau nama barang...">
+                           placeholder="Nama customer atau barang...">
                 </div>
 
                 {{-- Tombol Aksi --}}
-                <div class="col-12 col-md-2 d-flex gap-2">
-                    <button type="submit" class="btn btn-brand-primary btn-sm w-100 py-2">
-                        <i class="bi bi-funnel me-1"></i>Filter
-                    </button>
-                    @if($filterAktif)
-                        <a href="{{ route('nota.index') }}" class="btn btn-outline-secondary btn-sm py-2" title="Hapus semua filter">
-                            <i class="bi bi-x-lg"></i>
-                        </a>
-                    @endif
+                <div class="col-12 col-sm-auto col-lg-auto">
+                    <div class="d-flex gap-1.5 align-items-center">
+                        <button type="submit" class="btn btn-brand-primary btn-sm px-3 d-inline-flex align-items-center gap-1.5 text-nowrap" style="height: 31px;">
+                            <i class="bi bi-funnel"></i>
+                            <span>Filter</span>
+                        </button>
+                        @if($filterAktif)
+                            <a href="{{ route('nota.index') }}" class="btn btn-outline-secondary btn-sm px-2.5 d-inline-flex align-items-center" title="Hapus semua filter" style="height: 31px;">
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+                        @endif
+                    </div>
                 </div>
             </div>
 
