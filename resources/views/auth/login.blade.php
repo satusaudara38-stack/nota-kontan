@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Login &mdash; Aplikasi Nota Kontan</title>
+    <title>Masuk &mdash; ASTRA DAIHATSU Palembang Veteran</title>
 
     {{-- Google Fonts --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,42 +17,52 @@
     <style>
         body {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            background: radial-gradient(circle at 50% 20%, #1e293b 0%, #0f172a 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 24px 16px;
+            padding: 16px;
+            margin: 0;
             color: #0f172a;
         }
 
         .login-card {
             background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
-            max-width: 440px;
+            border-radius: 14px;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+            max-width: 400px;
             width: 100%;
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }
 
         .brand-badge {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
             background: linear-gradient(135deg, #2563eb, #1d4ed8);
             color: #ffffff;
             font-weight: 800;
-            font-size: 18px;
+            font-size: 16px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
         }
 
+        .form-control {
+            font-size: 0.85rem;
+            padding: 0.5rem 0.75rem;
+        }
         .form-control:focus {
             border-color: #2563eb;
-            box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.15);
+            box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.15);
+        }
+
+        .input-group-text {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
         }
 
         .btn-brand-accent {
@@ -60,25 +70,26 @@
             color: #ffffff;
             border: 1px solid #2563eb;
             font-weight: 600;
-            border-radius: 10px;
-            transition: all 0.2s ease;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            padding: 0.55rem 1rem;
+            transition: all 0.15s ease;
         }
         .btn-brand-accent:hover {
             background-color: #1d4ed8;
             border-color: #1d4ed8;
             color: #ffffff;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
         }
 
-        .account-preset-pill {
-            cursor: pointer;
-            transition: all 0.15s ease;
-            font-size: 0.75rem;
-            padding: 6px 10px;
+        .quick-btn {
+            font-size: 0.72rem;
+            padding: 0.45rem 0.4rem;
             border-radius: 8px;
+            transition: all 0.15s ease;
+            line-height: 1.2;
         }
-        .account-preset-pill:hover {
-            background-color: #e2e8f0 !important;
+        .quick-btn:hover {
             transform: translateY(-1px);
         }
     </style>
@@ -87,27 +98,28 @@
 
     <div class="login-card">
         {{-- Header Card --}}
-        <div class="text-center p-4 p-sm-5 pb-3">
-            <div class="brand-badge mb-3">NK</div>
-            <h1 class="h5 fw-bold text-dark mb-1">Masuk ke Sistem</h1>
-            <p class="text-secondary small mb-0">Aplikasi Pengelolaan Nota Kontan & Arsip Transaksi</p>
+        <div class="text-center pt-4 px-4 pb-2">
+            <div class="brand-badge mb-2">AD</div>
+            <h1 class="h6 fw-bold text-dark mb-0.5" style="letter-spacing: -0.01em;">ASTRA DAIHATSU</h1>
+            <p class="text-muted small mb-0" style="font-size: 0.75rem;">Palembang Veteran &bull; Sistem Delivery Order</p>
         </div>
 
         {{-- Form Body --}}
-        <div class="p-4 p-sm-5 pt-0">
+        <div class="px-4 pb-4 pt-2">
+            {{-- Flash Messages (Compact) --}}
             @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show small d-flex align-items-center gap-2 mb-3" role="alert">
+                <div class="alert alert-success alert-dismissible fade show py-2 px-3 small d-flex align-items-center gap-2 mb-2.5" role="alert" style="font-size: 0.75rem;">
                     <i class="bi bi-check-circle-fill text-success"></i>
                     <div>{{ session('success') }}</div>
-                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                    <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
                 </div>
             @endif
 
             @if(session('error'))
-                <div class="alert alert-danger alert-dismissible fade show small d-flex align-items-center gap-2 mb-3" role="alert">
+                <div class="alert alert-danger alert-dismissible fade show py-2 px-3 small d-flex align-items-center gap-2 mb-2.5" role="alert" style="font-size: 0.75rem;">
                     <i class="bi bi-exclamation-triangle-fill text-danger"></i>
                     <div>{{ session('error') }}</div>
-                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                    <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
                 </div>
             @endif
 
@@ -115,8 +127,8 @@
                 @csrf
 
                 {{-- Email Input --}}
-                <div class="mb-3">
-                    <label for="email" class="form-label small fw-semibold text-dark">
+                <div class="mb-2.5">
+                    <label for="email" class="form-label small fw-semibold text-dark mb-1" style="font-size: 0.78rem;">
                         Alamat Email <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
@@ -133,17 +145,15 @@
                                autofocus>
                     </div>
                     @error('email')
-                        <div class="text-danger small mt-1" style="font-size: 0.78rem;">{{ $message }}</div>
+                        <div class="text-danger small mt-1" style="font-size: 0.72rem;">{{ $message }}</div>
                     @enderror
                 </div>
 
                 {{-- Password Input --}}
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <label for="password" class="form-label small fw-semibold text-dark mb-1">
-                            Kata Sandi <span class="text-danger">*</span>
-                        </label>
-                    </div>
+                <div class="mb-2.5">
+                    <label for="password" class="form-label small fw-semibold text-dark mb-1" style="font-size: 0.78rem;">
+                        Kata Sandi <span class="text-danger">*</span>
+                    </label>
                     <div class="input-group">
                         <span class="input-group-text bg-light text-muted border-end-0">
                             <i class="bi bi-lock"></i>
@@ -156,60 +166,69 @@
                                required>
                     </div>
                     @error('password')
-                        <div class="text-danger small mt-1" style="font-size: 0.78rem;">{{ $message }}</div>
+                        <div class="text-danger small mt-1" style="font-size: 0.72rem;">{{ $message }}</div>
                     @enderror
                 </div>
 
                 {{-- Remember Me --}}
-                <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="remember" id="remember" checked>
-                        <label class="form-check-label small text-muted" for="remember">
+                        <input class="form-check-input" type="checkbox" name="remember" id="remember" checked style="width: 14px; height: 14px;">
+                        <label class="form-check-label text-muted" for="remember" style="font-size: 0.75rem;">
                             Ingat sesi saya
                         </label>
                     </div>
                 </div>
 
                 {{-- Submit Button --}}
-                <div class="d-grid mb-4">
-                    <button type="submit" class="btn btn-brand-accent py-2.5 d-inline-flex align-items-center justify-content-center gap-2">
-                        <i class="bi bi-box-arrow-in-right fs-5"></i>
-                        <span>Masuk Sekarang</span>
+                <div class="d-grid mb-3">
+                    <button type="submit" class="btn btn-brand-accent d-inline-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-box-arrow-in-right"></i>
+                        <span>Masuk ke Akun</span>
                     </button>
                 </div>
             </form>
 
-            {{-- Akun Bawaan untuk Uji Coba Cepat (Preset Quick Fill) --}}
-            <div class="p-3 bg-light rounded-3 border">
-                <div class="d-flex align-items-center gap-1.5 mb-2 text-muted fw-bold" style="font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase;">
-                    <i class="bi bi-shield-check text-primary"></i>
-                    <span>Akun Pengujian Demo (Klik untuk Isi):</span>
+            {{-- Akses Cepat Demo (Horizontal 3 Kolom Kompak) --}}
+            <div class="pt-2.5 border-top">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted fw-semibold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.05em;">
+                        <i class="bi bi-lightning-charge-fill text-warning me-1"></i>Pilih Akun Cepat:
+                    </span>
+                    <span class="text-muted" style="font-size: 0.68rem;">1-klik auto-fill</span>
                 </div>
-                <div class="d-flex flex-column gap-1.5">
+                <div class="row g-1.5 text-center">
                     {{-- 1. Super Admin --}}
-                    <div class="account-preset-pill bg-white border d-flex justify-content-between align-items-center" onclick="fillLogin('admin@notakontan.com', 'admin123')">
-                        <span class="fw-semibold text-danger"><i class="bi bi-person-fill-gear me-1"></i>Administrator Utama</span>
-                        <span class="text-muted small">admin123</span>
+                    <div class="col-4">
+                        <button type="button" class="btn btn-outline-danger w-100 quick-btn fw-semibold d-flex flex-column align-items-center justify-content-center" onclick="fillLogin('admin@notakontan.com', 'admin123')">
+                            <i class="bi bi-shield-lock fs-6 mb-0.5"></i>
+                            <span>Super Admin</span>
+                        </button>
                     </div>
 
                     {{-- 2. Admin Kantor --}}
-                    <div class="account-preset-pill bg-white border d-flex justify-content-between align-items-center" onclick="fillLogin('kantor@notakontan.com', 'admin123')">
-                        <span class="fw-semibold text-primary"><i class="bi bi-building me-1"></i>Admin Kantor</span>
-                        <span class="text-muted small">admin123</span>
+                    <div class="col-4">
+                        <button type="button" class="btn btn-outline-primary w-100 quick-btn fw-semibold d-flex flex-column align-items-center justify-content-center" onclick="fillLogin('kantor@notakontan.com', 'admin123')">
+                            <i class="bi bi-building fs-6 mb-0.5"></i>
+                            <span>Admin Kantor</span>
+                        </button>
                     </div>
 
                     {{-- 3. Sales Lapangan --}}
-                    <div class="account-preset-pill bg-white border d-flex justify-content-between align-items-center" onclick="fillLogin('sales@notakontan.com', 'sales123')">
-                        <span class="fw-semibold text-success"><i class="bi bi-phone me-1"></i>Sales Lapangan</span>
-                        <span class="text-muted small">sales123</span>
+                    <div class="col-4">
+                        <button type="button" class="btn btn-outline-success w-100 quick-btn fw-semibold d-flex flex-column align-items-center justify-content-center" onclick="fillLogin('sales@notakontan.com', 'sales123')">
+                            <i class="bi bi-phone fs-6 mb-0.5"></i>
+                            <span>Sales</span>
+                        </button>
                     </div>
                 </div>
             </div>
 
         </div>
 
-        <div class="bg-light border-top py-3 text-center small text-muted" style="font-size: 0.75rem;">
-            &copy; {{ date('Y') }} Sistem Aplikasi Nota Kontan &bull; Multi-Role Ready
+        {{-- Footer Minimalis --}}
+        <div class="bg-light border-top py-2 px-3 text-center text-muted" style="font-size: 0.7rem;">
+            &copy; {{ date('Y') }} ASTRA DAIHATSU Palembang Veteran
         </div>
     </div>
 

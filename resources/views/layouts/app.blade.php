@@ -35,6 +35,16 @@
             flex-direction: column;
         }
 
+        /* App Container: Sejajar di tengah dengan proporsi elegan */
+        .app-container {
+            width: 100%;
+            max-width: 1280px;
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 1.25rem;
+            padding-right: 1.25rem;
+        }
+
         /* Navbar Styling */
         .app-navbar {
             background-color: #0f172a;
@@ -198,6 +208,7 @@
             letter-spacing: 0.05em;
             padding: 0.85rem 1rem;
             border-bottom: 1px solid var(--brand-border);
+            white-space: nowrap;
         }
         .table-custom tbody td {
             padding: 1rem;
@@ -225,9 +236,9 @@
 
 <body>
 
-    {{-- Header / Navbar (Full-Width Fluid: Pepet Kiri & Pepet Kanan) --}}
+    {{-- Header / Navbar (Sejajar di tengah) --}}
     <nav class="navbar navbar-expand-lg app-navbar sticky-top">
-        <div class="container-fluid px-3 px-md-4">
+        <div class="app-container d-flex align-items-center justify-content-between">
             {{-- Brand Logo di Sudut Kiri --}}
             <a class="navbar-brand d-flex align-items-center text-decoration-none me-auto" href="{{ route('dashboard') }}">
                 <span class="navbar-brand-badge">AD</span>
@@ -314,8 +325,8 @@
         </div>
     </nav>
 
-    {{-- Main Content (Full-Width Fluid agar seimbang dengan Navbar) --}}
-    <main class="container-fluid px-3 px-md-4 py-4 my-2 flex-grow-1">
+    {{-- Main Content (Sejajar di tengah dengan Navbar) --}}
+    <main class="app-container py-4 flex-grow-1">
         {{-- Flash Alerts --}}
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2 border-0 shadow-sm mb-4" role="alert" style="background-color: #ecfdf5; color: #065f46; border-left: 4px solid #10b981 !important;">
@@ -336,11 +347,11 @@
         @yield('content')
     </main>
 
-    {{-- Footer (Full-Width Fluid) --}}
+    {{-- Footer (Sejajar di tengah) --}}
     <footer class="app-footer">
-        <div class="container-fluid px-3 px-md-4 d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
-            <div>&copy; {{ date('Y') }} <strong>Aplikasi Nota Kontan</strong> &bull; Sistem Pencatatan & Pelaporan Keuangan</div>
-            <div class="text-muted small">Versi 2.0 &bull; Ready for Cloud Deployment</div>
+        <div class="app-container d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
+            <div>&copy; {{ date('Y') }} <strong>ASTRA DAIHATSU Palembang Veteran</strong> &bull; Sistem Delivery Order</div>
+            <div class="text-muted small">Versi 2.0 &bull; Multi-Role Ready</div>
         </div>
     </footer>
 

@@ -11,14 +11,14 @@
             @if(auth()->check() && auth()->user()->isSales())
                 Riwayat Transaksi Saya
             @else
-                Daftar Nota Kontan
+                Daftar Transaksi & Konfirmasi DO
             @endif
         </h1>
         <p class="text-secondary small mb-0">
             @if(auth()->check() && auth()->user()->isSales())
-                Arsip transaksi penjualan tunai yang Anda input langsung di lapangan.
+                Arsip pesanan dan konfirmasi delivery order mobil yang Anda tangani.
             @else
-                Arsip transaksi penjualan tunai dan riwayat pelaporan dokumen keuangan seluruh tim.
+                Arsip pesanan, konfirmasi delivery order mobil, dan riwayat dokumen keuangan tim Astra Daihatsu.
             @endif
         </p>
     </div>
@@ -27,8 +27,9 @@
         <span class="badge bg-white text-muted border px-3 py-2 fw-medium shadow-sm">
             Total: {{ $notas->total() }} Transaksi
         </span>
-        <a href="{{ route('nota.create') }}" class="btn btn-brand-accent btn-sm px-3 py-2 shadow-sm">
-            <i class="bi bi-plus-lg me-1"></i> Input Nota Baru
+        <a href="{{ route('nota.create') }}" class="btn btn-brand-accent btn-sm px-3 py-2 shadow-sm d-inline-flex align-items-center gap-1.5">
+            <i class="bi bi-plus-lg"></i>
+            <span>Input Transaksi Baru</span>
         </a>
     </div>
 </div>
@@ -150,16 +151,16 @@
         <table class="table table-custom align-middle">
             <thead>
                 <tr>
-                    <th style="width: 45px;" class="text-center">No.</th>
-                    <th style="width: 105px;">Tanggal</th>
-                    <th style="min-width: 170px;">Customer</th>
-                    <th style="min-width: 170px;">Type Unit & Warna</th>
-                    <th style="min-width: 120px;">Skema</th>
-                    <th style="width: 140px;">Total Bayar</th>
+                    <th style="width: 45px;" class="text-center text-nowrap">No.</th>
+                    <th style="width: 105px;" class="text-nowrap">Tanggal</th>
+                    <th style="min-width: 170px;" class="text-nowrap">Customer</th>
+                    <th style="min-width: 180px;" class="text-nowrap">Type Unit & Warna</th>
+                    <th style="width: 110px;" class="text-center text-nowrap">Skema</th>
+                    <th style="width: 140px;" class="text-nowrap">Total Bayar</th>
                     @if(auth()->check() && !auth()->user()->isSales())
-                        <th style="width: 130px;">Petugas / Sales</th>
+                        <th style="width: 140px;" class="text-nowrap">Petugas / Sales</th>
                     @endif
-                    <th style="min-width: {{ auth()->check() && auth()->user()->isSales() ? '220px' : '310px' }};" class="text-end pe-4">Aksi Dokumen</th>
+                    <th style="min-width: {{ auth()->check() && auth()->user()->isSales() ? '220px' : '310px' }};" class="text-end pe-4 text-nowrap">Aksi Dokumen</th>
                 </tr>
             </thead>
 
@@ -344,7 +345,7 @@
 
                 @empty
                     <tr>
-                        <td colspan="{{ auth()->check() && !auth()->user()->isSales() ? '7' : '6' }}" class="text-center py-5">
+                        <td colspan="{{ auth()->check() && !auth()->user()->isSales() ? '8' : '7' }}" class="text-center py-5">
                             <div class="py-4">
                                 <i class="bi bi-receipt-cutoff text-muted display-4 d-block mb-3"></i>
                                 @if($filterAktif)
@@ -356,8 +357,9 @@
                                 @else
                                     <h6 class="fw-semibold text-dark mb-1">Belum Ada Transaksi Tercatat</h6>
                                     <p class="text-muted small mb-3">Mulai catat transaksi pertama Anda dengan menekan tombol di bawah.</p>
-                                    <a href="{{ route('nota.create') }}" class="btn btn-brand-accent btn-sm px-3 py-2">
-                                        <i class="bi bi-plus-lg me-1"></i> Input Nota Pertama
+                                    <a href="{{ route('nota.create') }}" class="btn btn-brand-accent btn-sm px-3.5 py-2 d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-plus-lg"></i>
+                                        <span>Input Transaksi Pertama</span>
                                     </a>
                                 @endif
                             </div>

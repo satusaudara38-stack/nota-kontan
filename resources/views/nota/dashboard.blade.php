@@ -26,8 +26,9 @@
         <span class="badge bg-white text-secondary border px-3 py-2 fw-medium shadow-sm">
             <i class="bi bi-calendar3 me-1 text-primary"></i> {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
         </span>
-        <a href="{{ route('nota.create') }}" class="btn btn-brand-accent btn-sm px-3 py-2 shadow-sm">
-            <i class="bi bi-plus-lg me-1"></i> Input Nota Baru
+        <a href="{{ route('nota.create') }}" class="btn btn-brand-accent btn-sm px-3 py-2 shadow-sm d-inline-flex align-items-center gap-1.5">
+            <i class="bi bi-plus-lg"></i>
+            <span>Input Transaksi Baru</span>
         </a>
     </div>
 </div>
