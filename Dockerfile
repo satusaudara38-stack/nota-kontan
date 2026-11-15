@@ -7,11 +7,12 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     libzip-dev \
     libsqlite3-dev \
+    libpq-dev \
     unzip \
     git \
     curl \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd pdo pdo_sqlite zip \
+    && docker-php-ext-install -j$(nproc) gd pdo pdo_sqlite pdo_mysql pdo_pgsql zip \
     && a2enmod rewrite \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 

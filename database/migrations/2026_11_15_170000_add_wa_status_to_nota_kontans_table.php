@@ -12,10 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('nota_kontans', function (Blueprint $table) {
-            $table->timestamp('wa_bos_sent_at')->nullable()->after('tanggal_upload');
-            $table->unsignedInteger('wa_bos_sent_count')->default(0)->after('wa_bos_sent_at');
-            $table->timestamp('wa_customer_sent_at')->nullable()->after('wa_bos_sent_count');
-            $table->unsignedInteger('wa_customer_sent_count')->default(0)->after('wa_customer_sent_at');
+            if (!Schema::hasColumn('nota_kontans', 'wa_bos_sent_at')) {
+                $table->timestamp('wa_bos_sent_at')->nullable()->after('tanggal_upload');
+            }
+            if (!Schema::hasColumn('nota_kontans', 'wa_bos_sent_count')) {
+                $table->unsignedInteger('wa_bos_sent_count')->default(0)->after('wa_bos_sent_at');
+            }
+            if (!Schema::hasColumn('nota_kontans', 'wa_customer_sent_at')) {
+                $table->timestamp('wa_customer_sent_at')->nullable()->after('wa_bos_sent_count');
+            }
+            if (!Schema::hasColumn('nota_kontans', 'wa_customer_sent_count')) {
+                $table->unsignedInteger('wa_customer_sent_count')->default(0)->after('wa_customer_sent_at');
+            }
         });
     }
 
