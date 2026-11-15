@@ -217,6 +217,23 @@
                                     <span>{{ $nota->nomor_wa }}</span>
                                 </div>
                             @endif
+
+                            {{-- Status Kirim WA ke Customer --}}
+                            <div class="mt-1" id="badgeCustomerContainer{{ $nota->id }}">
+                                @if($nota->isTerkirimCustomer())
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-1.5 d-inline-flex align-items-center gap-1"
+                                          title="Terkirim ke Customer: {{ $nota->wa_customer_sent_at->format('d/m/Y H:i') }} WIB ({{ $nota->wa_customer_sent_count }}x)"
+                                          style="font-size: 0.68rem; font-weight: 500;">
+                                        <i class="bi bi-check2-all text-success"></i> Terkirim ke Customer
+                                    </span>
+                                @else
+                                    <span class="badge bg-light text-muted border py-0.5 px-1.5 d-inline-flex align-items-center gap-1"
+                                          title="Belum dikirim via WhatsApp ke Customer"
+                                          style="font-size: 0.68rem; font-weight: 500;">
+                                        <i class="bi bi-dash-circle text-muted"></i> Belum ke Customer
+                                    </span>
+                                @endif
+                            </div>
                         </td>
 
                         {{-- Type Unit & Warna --}}
@@ -286,97 +303,155 @@
 
                         {{-- Aksi Dokumen --}}
                         <td class="text-end pe-4">
-                            <div class="d-inline-flex align-items-center gap-2">
+                            <div class="d-inline-flex flex-column align-items-end gap-1">
+                                <div class="d-inline-flex align-items-center gap-2">
 
-                                {{-- 1. Tombol Detail --}}
-                                <a href="{{ route('nota.show', $nota->id) }}"
-                                   class="btn btn-outline-dark btn-sm py-1.5 px-3 d-inline-flex align-items-center gap-1.5"
-                                   style="font-size: 0.8rem;"
-                                   title="Tinjau Detail Faktur & Bukti Struk">
-                                    <i class="bi bi-eye"></i>
-                                    <span>Detail</span>
-                                </a>
+                                    {{-- 1. Tombol Detail --}}
+                                    <a href="{{ route('nota.show', $nota->id) }}"
+                                       class="btn btn-outline-dark btn-sm py-1.5 px-3 d-inline-flex align-items-center gap-1.5"
+                                       style="font-size: 0.8rem;"
+                                       title="Tinjau Detail Faktur & Bukti Struk">
+                                        <i class="bi bi-eye"></i>
+                                        <span>Detail</span>
+                                    </a>
 
-                                {{-- 2. Tombol Unduh / Lihat PDF --}}
-                                <a href="{{ route('nota.pdf', $nota->id) }}"
-                                   target="_blank"
-                                   class="btn btn-outline-danger btn-sm py-1.5 px-3 d-inline-flex align-items-center gap-1.5"
-                                   style="font-size: 0.8rem;"
-                                   title="Buka Berkas PDF Resmi">
-                                    <i class="bi bi-file-earmark-pdf"></i>
-                                    <span>PDF</span>
-                                </a>
+                                    {{-- 2. Tombol Unduh / Lihat PDF --}}
+                                    <a href="{{ route('nota.pdf', $nota->id) }}"
+                                       target="_blank"
+                                       class="btn btn-outline-danger btn-sm py-1.5 px-3 d-inline-flex align-items-center gap-1.5"
+                                       style="font-size: 0.8rem;"
+                                       title="Buka Berkas PDF Resmi">
+                                        <i class="bi bi-file-earmark-pdf"></i>
+                                        <span>PDF</span>
+                                    </a>
 
-                                {{-- 3. Tombol Kirim ke Bos (Khusus Super Admin & Admin Kantor) --}}
-                                @if(auth()->check() && !auth()->user()->isSales())
-                                    <button type="button"
-                                            class="btn btn-brand-primary btn-sm py-1.5 px-3 d-inline-flex align-items-center gap-1.5"
-                                            style="font-size: 0.8rem;"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#modalKirimBos{{ $nota->id }}"
-                                            title="Kirim Laporan Nota ke WhatsApp Pimpinan">
-                                        <i class="bi bi-send"></i>
-                                        <span>Kirim ke Bos</span>
-                                    </button>
-                                @endif
+                                    {{-- 3. Tombol Kirim ke Bos (Khusus Super Admin & Admin Kantor) --}}
+                                    @if(auth()->check() && !auth()->user()->isSales())
+                                        <button type="button"
+                                                class="btn btn-brand-primary btn-sm py-1.5 px-3 d-inline-flex align-items-center gap-1.5"
+                                                style="font-size: 0.8rem;"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalKirimBos{{ $nota->id }}"
+                                                title="Kirim Laporan Nota ke WhatsApp Pimpinan">
+                                            <i class="bi bi-send"></i>
+                                            <span>Kirim ke Bos</span>
+                                        </button>
+                                    @endif
 
-                                {{-- 4. Menu Dropdown: Kelola & Customer --}}
-                                <div class="dropdown d-inline-block">
-                                    <button class="btn btn-light btn-sm border text-secondary py-1.5 px-3 d-inline-flex align-items-center gap-1 dropdown-toggle"
-                                            type="button"
-                                            data-bs-toggle="dropdown"
-                                            aria-expanded="false"
-                                            style="font-size: 0.8rem;">
-                                        <span>Kelola</span>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border p-1" style="font-size: 0.8125rem;">
-                                        {{-- WhatsApp Customer --}}
-                                        @if($nota->nomor_wa && $nota->wa_customer_url)
-                                            <li>
-                                                <a class="dropdown-item py-1.5 px-3 d-flex align-items-center gap-2"
-                                                   href="{{ $nota->wa_customer_url }}"
-                                                   target="_blank"
-                                                   rel="noopener noreferrer">
-                                                    <i class="bi bi-whatsapp text-success"></i>
-                                                    <span>Kirim WA ke Customer</span>
-                                                </a>
-                                            </li>
-                                        @else
-                                            <li>
-                                                <span class="dropdown-item py-1.5 px-3 text-muted disabled">
-                                                    <i class="bi bi-whatsapp"></i> Tanpa No. WhatsApp
-                                                </span>
-                                            </li>
-                                        @endif
+                                    {{-- 4. Menu Dropdown: Kelola & Customer --}}
+                                    <div class="dropdown d-inline-block">
+                                        <button class="btn btn-light btn-sm border text-secondary py-1.5 px-3 d-inline-flex align-items-center gap-1 dropdown-toggle"
+                                                type="button"
+                                                data-bs-toggle="dropdown"
+                                                aria-expanded="false"
+                                                style="font-size: 0.8rem;">
+                                            <span>Kelola</span>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border p-1" style="font-size: 0.8125rem;">
+                                            {{-- WhatsApp Customer --}}
+                                            @if($nota->nomor_wa)
+                                                <li>
+                                                    <a class="dropdown-item py-1.5 px-3 d-flex align-items-center justify-content-between gap-2"
+                                                       href="{{ route('nota.share', $nota->id) }}"
+                                                       target="_blank"
+                                                       rel="noopener noreferrer"
+                                                       onclick="if(typeof updateBadgeCustomerTerkirim==='function'){ updateBadgeCustomerTerkirim({{ $nota->id }}); }">
+                                                        <span class="d-flex align-items-center gap-2">
+                                                            <i class="bi bi-whatsapp text-success"></i>
+                                                            <span>{{ $nota->isTerkirimCustomer() ? 'Kirim Ulang ke Customer' : 'Kirim WA ke Customer' }}</span>
+                                                        </span>
+                                                        @if($nota->isTerkirimCustomer())
+                                                            <i class="bi bi-check2 text-success fw-bold"></i>
+                                                        @endif
+                                                    </a>
+                                                </li>
+                                            @else
+                                                <li>
+                                                    <span class="dropdown-item py-1.5 px-3 text-muted disabled">
+                                                        <i class="bi bi-whatsapp"></i> Tanpa No. WhatsApp
+                                                    </span>
+                                                </li>
+                                            @endif
 
-                                        {{-- Edit --}}
-                                        <li>
-                                            <a class="dropdown-item py-1.5 px-3 d-flex align-items-center gap-2"
-                                               href="{{ route('nota.edit', $nota->id) }}">
-                                                <i class="bi bi-pencil text-secondary"></i>
-                                                <span>Edit Data Nota</span>
-                                            </a>
-                                        </li>
-
-                                        {{-- Hapus (Khusus Super Admin) --}}
-                                        @if(auth()->check() && auth()->user()->isSuperAdmin())
                                             <li><hr class="dropdown-divider my-1"></li>
+                                            <li class="dropdown-header py-1 px-3 text-uppercase" style="font-size: 0.68rem; font-weight: 700; color: #64748b;">
+                                                Ubah Status Manual
+                                            </li>
                                             <li>
-                                                <form action="{{ route('nota.destroy', $nota->id) }}"
-                                                      method="POST"
-                                                      onsubmit="return confirm('Apakah Anda yakin ingin menghapus data nota milik customer {{ addslashes($nota->nama_customer ?? 'ini') }}? Tindakan ini tidak dapat dibatalkan.');">
+                                                <form action="{{ route('nota.mark-sent', $nota->id) }}" method="POST" class="d-inline">
                                                     @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="dropdown-item py-1.5 px-3 d-flex align-items-center gap-2 text-danger">
-                                                        <i class="bi bi-trash3"></i>
-                                                        <span>Hapus Nota</span>
+                                                    <input type="hidden" name="target" value="customer">
+                                                    <input type="hidden" name="action" value="{{ $nota->isTerkirimCustomer() ? 'reset' : 'sent' }}">
+                                                    <button type="submit" class="dropdown-item py-1.5 px-3 d-flex align-items-center gap-2">
+                                                        <i class="bi {{ $nota->isTerkirimCustomer() ? 'bi-arrow-counterclockwise text-warning' : 'bi-check-circle text-success' }}"></i>
+                                                        <span>{{ $nota->isTerkirimCustomer() ? 'Tandai Belum ke Customer' : 'Tandai Sudah ke Customer' }}</span>
                                                     </button>
                                                 </form>
                                             </li>
-                                        @endif
-                                    </ul>
+                                            @if(auth()->check() && !auth()->user()->isSales())
+                                                <li>
+                                                    <form action="{{ route('nota.mark-sent', $nota->id) }}" method="POST" class="d-inline">
+                                                        @csrf
+                                                        <input type="hidden" name="target" value="boss">
+                                                        <input type="hidden" name="action" value="{{ $nota->isTerkirimBos() ? 'reset' : 'sent' }}">
+                                                        <button type="submit" class="dropdown-item py-1.5 px-3 d-flex align-items-center gap-2">
+                                                            <i class="bi {{ $nota->isTerkirimBos() ? 'bi-arrow-counterclockwise text-warning' : 'bi-check-circle text-success' }}"></i>
+                                                            <span>{{ $nota->isTerkirimBos() ? 'Tandai Belum ke Bos' : 'Tandai Sudah ke Bos' }}</span>
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            @endif
+
+                                            <li><hr class="dropdown-divider my-1"></li>
+
+                                            {{-- Edit --}}
+                                            <li>
+                                                <a class="dropdown-item py-1.5 px-3 d-flex align-items-center gap-2"
+                                                   href="{{ route('nota.edit', $nota->id) }}">
+                                                    <i class="bi bi-pencil text-secondary"></i>
+                                                    <span>Edit Data Nota</span>
+                                                </a>
+                                            </li>
+
+                                            {{-- Hapus (Khusus Super Admin) --}}
+                                            @if(auth()->check() && auth()->user()->isSuperAdmin())
+                                                <li><hr class="dropdown-divider my-1"></li>
+                                                <li>
+                                                    <form action="{{ route('nota.destroy', $nota->id) }}"
+                                                          method="POST"
+                                                          onsubmit="return confirm('Apakah Anda yakin ingin menghapus data nota milik customer {{ addslashes($nota->nama_customer ?? 'ini') }}? Tindakan ini tidak dapat dibatalkan.');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="dropdown-item py-1.5 px-3 d-flex align-items-center gap-2 text-danger">
+                                                            <i class="bi bi-trash3"></i>
+                                                            <span>Hapus Nota</span>
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            @endif
+                                        </ul>
+                                    </div>
+
                                 </div>
 
+                                {{-- Status Pengiriman ke Bos --}}
+                                @if(auth()->check() && !auth()->user()->isSales())
+                                    <div class="d-flex align-items-center gap-1" id="badgeBosContainer{{ $nota->id }}">
+                                        @if($nota->isTerkirimBos())
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-2 d-inline-flex align-items-center gap-1"
+                                                  title="Terkirim ke Bos: {{ $nota->wa_bos_sent_at->format('d/m/Y H:i') }} WIB ({{ $nota->wa_bos_sent_count }}x)"
+                                                  style="font-size: 0.68rem; font-weight: 500;">
+                                                <i class="bi bi-check2-all text-success"></i> Terkirim ke Bos ({{ $nota->wa_bos_sent_at->format('d/m H:i') }})
+                                            </span>
+                                        @else
+                                            <span class="badge bg-light text-muted border py-0.5 px-2 d-inline-flex align-items-center gap-1"
+                                                  title="Belum dikirim via WhatsApp ke pimpinan"
+                                                  style="font-size: 0.68rem; font-weight: 500;">
+                                                <i class="bi bi-clock text-muted"></i> Belum ke Bos
+                                            </span>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -425,5 +500,31 @@
         </div>
     @endif
 </div>
+
+<script>
+function updateBadgeCustomerTerkirim(notaId) {
+    const el = document.getElementById('badgeCustomerContainer' + notaId);
+    if (el) {
+        el.innerHTML = `
+            <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-1.5 d-inline-flex align-items-center gap-1"
+                  style="font-size: 0.68rem; font-weight: 500;">
+                <i class="bi bi-check2-all text-success"></i> Terkirim ke Customer
+            </span>
+        `;
+    }
+}
+
+function updateBadgeBosTerkirim(notaId) {
+    const el = document.getElementById('badgeBosContainer' + notaId);
+    if (el) {
+        el.innerHTML = `
+            <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-2 d-inline-flex align-items-center gap-1"
+                  style="font-size: 0.68rem; font-weight: 500;">
+                <i class="bi bi-check2-all text-success"></i> Terkirim ke Bos (Baru saja)
+            </span>
+        `;
+    }
+}
+</script>
 
 @endsection

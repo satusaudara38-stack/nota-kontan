@@ -30,6 +30,10 @@ return new class extends Migration
             $table->string('nama_file')->nullable();
             $table->string('path_file')->nullable();
             $table->date('tanggal_upload')->nullable();
+            $table->timestamp('wa_bos_sent_at')->nullable();
+            $table->unsignedInteger('wa_bos_sent_count')->default(0);
+            $table->timestamp('wa_customer_sent_at')->nullable();
+            $table->unsignedInteger('wa_customer_sent_count')->default(0);
             $table->timestamps();
         });
     }

@@ -26,6 +26,10 @@ class NotaKontan extends Model
         'nama_file',
         'path_file',
         'nomor_wa',
+        'wa_bos_sent_at',
+        'wa_bos_sent_count',
+        'wa_customer_sent_at',
+        'wa_customer_sent_count',
     ];
 
     public function user()
@@ -74,7 +78,71 @@ class NotaKontan extends Model
             'nominal_pembayaran' => 'integer',
             'total_diskon' => 'integer',
             'items' => 'array',
+            'wa_bos_sent_at' => 'datetime',
+            'wa_customer_sent_at' => 'datetime',
+            'wa_bos_sent_count' => 'integer',
+            'wa_customer_sent_count' => 'integer',
         ];
+    }
+
+    /**
+     * Status Pengiriman WA ke Bos
+     */
+    public function isTerkirimBos(): bool
+    {
+        return !is_null($this->wa_bos_sent_at);
+    }
+
+    /**
+     * Status Pengiriman WA ke Customer
+     */
+    public function isTerkirimCustomer(): bool
+    {
+        return !is_null($this->wa_customer_sent_at);
+    }
+
+    /**
+     * Tandai pengiriman ke Bos berhasil dibuka / dikirim
+     */
+    public function markSentToBoss(): void
+    {
+        $this->update([
+            'wa_bos_sent_at' => now(),
+            'wa_bos_sent_count' => ($this->wa_bos_sent_count ?? 0) + 1,
+        ]);
+    }
+
+    /**
+     * Tandai pengiriman ke Customer berhasil dibuka / dikirim
+     */
+    public function markSentToCustomer(): void
+    {
+        $this->update([
+            'wa_customer_sent_at' => now(),
+            'wa_customer_sent_count' => ($this->wa_customer_sent_count ?? 0) + 1,
+        ]);
+    }
+
+    /**
+     * Reset status pengiriman ke Bos
+     */
+    public function resetStatusBos(): void
+    {
+        $this->update([
+            'wa_bos_sent_at' => null,
+            'wa_bos_sent_count' => 0,
+        ]);
+    }
+
+    /**
+     * Reset status pengiriman ke Customer
+     */
+    public function resetStatusCustomer(): void
+    {
+        $this->update([
+            'wa_customer_sent_at' => null,
+            'wa_customer_sent_count' => 0,
+        ]);
     }
 
     /**

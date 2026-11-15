@@ -350,6 +350,9 @@ class NotaKontanController extends Controller
                 ->with('error', 'Nomor WhatsApp customer belum tersedia.');
         }
 
+        // Tandai bahwa nota telah dikirim ke Customer
+        $nota->markSentToCustomer();
+
         return redirect()->away($url);
     }
 
@@ -364,7 +367,55 @@ class NotaKontanController extends Controller
                 ->with('error', 'Kontak WhatsApp bos belum terdaftar. Silakan tambahkan di menu Kontak Pimpinan.');
         }
 
+        // Tandai bahwa nota telah dikirim ke Bos / Pimpinan
+        $nota->markSentToBoss();
+
         return redirect()->away($nota->getWaBossUrl($boss));
+    }
+
+    /**
+     * Tandai atau reset status pengiriman WA secara manual / AJAX
+     */
+    public function markSent(Request $request, NotaKontan $nota)
+    {
+        $target = $request->input('target', 'all'); // 'boss', 'customer', 'all'
+        $action = $request->input('action', 'sent'); // 'sent', 'reset'
+
+        if ($target === 'boss' || $target === 'all') {
+            if ($action === 'reset') {
+                $nota->resetStatusBos();
+            } else {
+                $nota->markSentToBoss();
+            }
+        }
+
+        if ($target === 'customer' || $target === 'all') {
+            if ($action === 'reset') {
+                $nota->resetStatusCustomer();
+            } else {
+                $nota->markSentToCustomer();
+            }
+        }
+
+        $fresh = $nota->fresh();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'target' => $target,
+                'action' => $action,
+                'wa_bos_sent_at' => $fresh->wa_bos_sent_at ? $fresh->wa_bos_sent_at->format('d/m/Y H:i') : null,
+                'wa_bos_sent_count' => $fresh->wa_bos_sent_count,
+                'wa_customer_sent_at' => $fresh->wa_customer_sent_at ? $fresh->wa_customer_sent_at->format('d/m/Y H:i') : null,
+                'wa_customer_sent_count' => $fresh->wa_customer_sent_count,
+            ]);
+        }
+
+        $msg = ($action === 'reset') 
+            ? 'Status pengiriman berhasil di-reset menjadi belum terkirim.' 
+            : 'Status pengiriman berhasil ditandai sebagai terkirim.';
+
+        return back()->with('success', $msg);
     }
 
     public function destroy(NotaKontan $nota)

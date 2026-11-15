@@ -196,9 +196,9 @@
 
             {{-- Action buttons bar --}}
             <div class="d-flex flex-wrap gap-2 pt-4 mt-3 border-top">
-                @if($nota->nomor_wa && $nota->wa_customer_url)
-                    <a href="{{ $nota->wa_customer_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-success btn-sm py-1.5 px-3">
-                        <i class="bi bi-whatsapp me-1"></i> Kirim Format Konfirmasi ke Customer
+                @if($nota->nomor_wa)
+                    <a href="{{ route('nota.share', $nota->id) }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-success btn-sm py-1.5 px-3">
+                        <i class="bi bi-whatsapp me-1"></i> {{ $nota->isTerkirimCustomer() ? 'Kirim Ulang ke Customer' : 'Kirim Format Konfirmasi ke Customer' }}
                     </a>
                 @endif
 
@@ -221,6 +221,90 @@
 
     {{-- Kolom Kanan: Pratinjau Dokumen & Foto Bukti Fisik --}}
     <div class="col-lg-5">
+        {{-- Card Status Distribusi / Pengiriman WhatsApp --}}
+        <div class="card card-custom p-3.5 mb-4 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
+                <span class="small fw-bold text-dark text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+                    <i class="bi bi-broadcast text-primary me-1"></i> Status Pengiriman WhatsApp
+                </span>
+                <span class="badge bg-light text-muted border" style="font-size: 0.68rem;">Live Tracking</span>
+            </div>
+
+            <div class="d-flex flex-column gap-2.5">
+                {{-- Status Customer --}}
+                <div class="p-2.5 rounded-3 border d-flex justify-content-between align-items-center bg-white">
+                    <div>
+                        <div class="fw-semibold small text-dark d-flex align-items-center gap-1.5">
+                            <i class="bi bi-person-check text-muted"></i>
+                            <span>Pesan ke Customer</span>
+                        </div>
+                        <div class="small mt-0.5" style="font-size: 0.72rem;">
+                            @if($nota->isTerkirimCustomer())
+                                <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-1.5">
+                                    <i class="bi bi-check2-all"></i> Terkirim: {{ $nota->wa_customer_sent_at->format('d/m/Y H:i') }} WIB ({{ $nota->wa_customer_sent_count }}x)
+                                </span>
+                            @else
+                                <span class="badge bg-light text-muted border py-0.5 px-1.5">
+                                    <i class="bi bi-dash-circle"></i> Belum pernah dikirim
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-1">
+                        @if($nota->nomor_wa)
+                            <a href="{{ route('nota.share', $nota->id) }}" target="_blank" class="btn btn-outline-success btn-sm py-1 px-2.5" style="font-size: 0.75rem;">
+                                <i class="bi bi-whatsapp me-1"></i> {{ $nota->isTerkirimCustomer() ? 'Kirim Ulang' : 'Kirim' }}
+                            </a>
+                        @endif
+                        <form action="{{ route('nota.mark-sent', $nota->id) }}" method="POST" class="d-inline">
+                            @csrf
+                            <input type="hidden" name="target" value="customer">
+                            <input type="hidden" name="action" value="{{ $nota->isTerkirimCustomer() ? 'reset' : 'sent' }}">
+                            <button type="submit" class="btn btn-light border btn-sm py-1 px-2 text-muted" style="font-size: 0.72rem;" title="{{ $nota->isTerkirimCustomer() ? 'Reset ke Belum Terkirim' : 'Tandai Sudah Terkirim' }}">
+                                <i class="bi {{ $nota->isTerkirimCustomer() ? 'bi-arrow-counterclockwise' : 'bi-check2' }}"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                {{-- Status Bos (khusus non-sales) --}}
+                @if(auth()->check() && !auth()->user()->isSales())
+                    <div class="p-2.5 rounded-3 border d-flex justify-content-between align-items-center bg-white">
+                        <div>
+                            <div class="fw-semibold small text-dark d-flex align-items-center gap-1.5">
+                                <i class="bi bi-briefcase text-muted"></i>
+                                <span>Laporan ke Pimpinan / Bos</span>
+                            </div>
+                            <div class="small mt-0.5" style="font-size: 0.72rem;">
+                                @if($nota->isTerkirimBos())
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-1.5">
+                                        <i class="bi bi-check2-all"></i> Terkirim: {{ $nota->wa_bos_sent_at->format('d/m/Y H:i') }} WIB ({{ $nota->wa_bos_sent_count }}x)
+                                    </span>
+                                @else
+                                    <span class="badge bg-light text-muted border py-0.5 px-1.5">
+                                        <i class="bi bi-clock"></i> Belum pernah dikirim
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-1">
+                            <button type="button" class="btn btn-brand-primary btn-sm py-1 px-2.5" data-bs-toggle="modal" data-bs-target="#modalKirimBos{{ $nota->id }}" style="font-size: 0.75rem;">
+                                <i class="bi bi-send me-1"></i> {{ $nota->isTerkirimBos() ? 'Kirim Ulang' : 'Kirim' }}
+                            </button>
+                            <form action="{{ route('nota.mark-sent', $nota->id) }}" method="POST" class="d-inline">
+                                @csrf
+                                <input type="hidden" name="target" value="boss">
+                                <input type="hidden" name="action" value="{{ $nota->isTerkirimBos() ? 'reset' : 'sent' }}">
+                                <button type="submit" class="btn btn-light border btn-sm py-1 px-2 text-muted" style="font-size: 0.72rem;" title="{{ $nota->isTerkirimBos() ? 'Reset ke Belum Terkirim' : 'Tandai Sudah Terkirim' }}">
+                                    <i class="bi {{ $nota->isTerkirimBos() ? 'bi-arrow-counterclockwise' : 'bi-check2' }}"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                @endif
+            </div>
+        </div>
+
         {{-- Card Pratinjau Pesan WA Konfirmasi --}}
         <div class="card card-custom p-3.5 mb-4 shadow-sm">
             <div class="d-flex justify-content-between align-items-center pb-2 mb-2 border-bottom">

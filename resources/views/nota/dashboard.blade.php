@@ -233,6 +233,13 @@
                             <div class="small text-muted" style="font-size: 0.72rem;">
                                 {{ $nota->isSparepart() ? 'Pelanggan Sparepart' : 'STNK: ' . $nota->stnk_bpkb_name }}
                             </div>
+                            @if($nota->isTerkirimCustomer())
+                                <div class="mt-0.5">
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-1.5" style="font-size: 0.65rem;">
+                                        <i class="bi bi-check2-all"></i> Terkirim ke Customer
+                                    </span>
+                                </div>
+                            @endif
                         </td>
                         <td>
                             @if($nota->isSparepart())
@@ -252,16 +259,31 @@
                             </span>
                         </td>
                         <td class="text-end pe-4">
-                            <div class="d-inline-flex align-items-center gap-2">
-                                <a href="{{ route('nota.show', $nota->id) }}" class="btn btn-outline-dark btn-sm py-1.5 px-3 d-inline-flex align-items-center gap-1.5" style="font-size: 0.8rem;">
-                                    <i class="bi bi-eye"></i>
-                                    <span>Detail</span>
-                                </a>
+                            <div class="d-inline-flex flex-column align-items-end gap-1">
+                                <div class="d-inline-flex align-items-center gap-2">
+                                    <a href="{{ route('nota.show', $nota->id) }}" class="btn btn-outline-dark btn-sm py-1.5 px-3 d-inline-flex align-items-center gap-1.5" style="font-size: 0.8rem;">
+                                        <i class="bi bi-eye"></i>
+                                        <span>Detail</span>
+                                    </a>
+                                    @if(auth()->check() && !auth()->user()->isSales())
+                                        <button type="button" class="btn btn-brand-primary btn-sm py-1.5 px-3 d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#modalKirimBos{{ $nota->id }}" style="font-size: 0.8rem;">
+                                            <i class="bi bi-send"></i>
+                                            <span>Kirim ke Bos</span>
+                                        </button>
+                                    @endif
+                                </div>
                                 @if(auth()->check() && !auth()->user()->isSales())
-                                    <button type="button" class="btn btn-brand-primary btn-sm py-1.5 px-3 d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#modalKirimBos{{ $nota->id }}" style="font-size: 0.8rem;">
-                                        <i class="bi bi-send"></i>
-                                        <span>Kirim ke Bos</span>
-                                    </button>
+                                    <div>
+                                        @if($nota->isTerkirimBos())
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-1.5" style="font-size: 0.65rem;">
+                                                <i class="bi bi-check2-all"></i> Terkirim ke Bos
+                                            </span>
+                                        @else
+                                            <span class="badge bg-light text-muted border py-0.5 px-1.5" style="font-size: 0.65rem;">
+                                                <i class="bi bi-clock"></i> Belum ke Bos
+                                            </span>
+                                        @endif
+                                    </div>
                                 @endif
                             </div>
                         </td>

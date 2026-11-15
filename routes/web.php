@@ -28,9 +28,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/nota-kontan/{nota}/edit', [NotaKontanController::class, 'edit'])->name('nota.edit');
     Route::put('/nota-kontan/{nota}', [NotaKontanController::class, 'update'])->name('nota.update');
 
-    // Berbagi Nota via WhatsApp
+    // Berbagi Nota via WhatsApp & Pembaruan Status Terkirim
     Route::get('/nota-kontan/{nota}/whatsapp', [NotaKontanController::class, 'share'])->name('nota.share');
     Route::get('/nota-kontan/{nota}/share-boss', [NotaKontanController::class, 'shareBoss'])->name('nota.share-boss');
+    Route::post('/nota-kontan/{nota}/mark-sent', [NotaKontanController::class, 'markSent'])->name('nota.mark-sent');
 
     // Hapus Nota: Khusus Super Admin
     Route::delete('/nota-kontan/{nota}', [NotaKontanController::class, 'destroy'])

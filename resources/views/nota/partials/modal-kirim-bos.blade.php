@@ -16,6 +16,44 @@
             </div>
             
             <div class="modal-body p-3 p-md-4" style="-webkit-overflow-scrolling: touch; overflow-y: auto;">
+                {{-- Status Pengiriman ke Pimpinan Saat Ini --}}
+                @if($nota->isTerkirimBos())
+                    <div class="alert alert-success d-flex align-items-center justify-content-between py-2.5 px-3 mb-3 small border-0 shadow-sm" style="background-color: #ecfdf5; color: #065f46; border-radius: 8px;">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                            <div>
+                                <strong class="d-block" style="font-size: 0.82rem;">Status: Sudah Terkirim ke Pimpinan</strong>
+                                <span class="text-muted" style="font-size: 0.73rem;">
+                                    Terakhir: {{ $nota->wa_bos_sent_at->format('d/m/Y H:i') }} WIB &bull; Total: {{ $nota->wa_bos_sent_count }}x
+                                </span>
+                            </div>
+                        </div>
+                        <form action="{{ route('nota.mark-sent', $nota->id) }}" method="POST" class="d-inline">
+                            @csrf
+                            <input type="hidden" name="target" value="boss">
+                            <input type="hidden" name="action" value="reset">
+                            <button type="submit" class="btn btn-sm btn-link text-muted p-0 text-decoration-none" style="font-size: 0.72rem;" title="Reset status ke belum terkirim">
+                                <i class="bi bi-arrow-counterclockwise"></i> Reset
+                            </button>
+                        </form>
+                    </div>
+                @else
+                    <div class="alert alert-light border d-flex align-items-center justify-content-between py-2 px-3 mb-3 small text-muted" style="border-radius: 8px;">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-clock-history text-secondary"></i>
+                            <span style="font-size: 0.78rem;">Status: <strong>Belum pernah dikirim ke Pimpinan</strong></span>
+                        </div>
+                        <form action="{{ route('nota.mark-sent', $nota->id) }}" method="POST" class="d-inline">
+                            @csrf
+                            <input type="hidden" name="target" value="boss">
+                            <input type="hidden" name="action" value="sent">
+                            <button type="submit" class="btn btn-sm btn-outline-success py-0.5 px-2" style="font-size: 0.72rem;">
+                                <i class="bi bi-check2"></i> Tandai Sudah
+                            </button>
+                        </form>
+                    </div>
+                @endif
+
                 {{-- Ringkasan Dokumen Konfirmasi DO --}}
                 <div class="p-3 rounded-3 mb-3" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
                     <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
@@ -88,9 +126,10 @@
                                 </div>
 
                                 {{-- Link WhatsApp Langsung (Universal Link untuk iPhone Safari & Android) --}}
-                                <a href="{{ $nota->getWaBossUrl($b) }}"
+                                <a href="{{ route('nota.share-boss', ['nota' => $nota->id, 'boss' => $b->id]) }}"
                                    target="_blank"
                                    rel="noopener noreferrer"
+                                   onclick="if(typeof updateBadgeBosTerkirim==='function'){ updateBadgeBosTerkirim({{ $nota->id }}); }"
                                    class="btn btn-outline-success btn-sm py-1.5 px-3 d-inline-flex align-items-center fw-medium"
                                    style="font-size: 0.78rem;">
                                     <i class="bi bi-whatsapp me-1.5"></i> Kirim
@@ -144,7 +183,7 @@ if (typeof kirimSemuaBos{{ $nota->id }} === 'undefined') {
     function kirimSemuaBos{{ $nota->id }}() {
         const daftarUrl = [
             @foreach($bosses as $b)
-                "{{ $nota->getWaBossUrl($b) }}",
+                "{{ route('nota.share-boss', ['nota' => $nota->id, 'boss' => $b->id]) }}",
             @endforeach
         ];
 
@@ -153,6 +192,10 @@ if (typeof kirimSemuaBos{{ $nota->id }} === 'undefined') {
                 window.open(url, '_blank', 'noopener,noreferrer');
             }, index * 600);
         });
+
+        if (typeof updateBadgeBosTerkirim === 'function') {
+            updateBadgeBosTerkirim({{ $nota->id }});
+        }
     }
 }
 </script>
