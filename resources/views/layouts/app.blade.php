@@ -298,6 +298,15 @@
                                         {{ auth()->user()->role_label }}
                                     </span>
                                 </li>
+                                @if(auth()->user()->isSuperAdmin())
+                                    <li>
+                                        <a href="{{ route('users.index') }}" class="dropdown-item py-2 px-2 text-dark d-flex align-items-center gap-2 rounded">
+                                            <i class="bi bi-shield-lock text-primary"></i>
+                                            <span class="fw-medium">Ubah Email & Kata Sandi</span>
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider my-1"></li>
+                                @endif
                                 <li>
                                     <form action="{{ route('logout') }}" method="POST">
                                         @csrf
