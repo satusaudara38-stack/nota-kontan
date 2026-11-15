@@ -298,15 +298,13 @@
                                         {{ auth()->user()->role_label }}
                                     </span>
                                 </li>
-                                @if(auth()->user()->isSuperAdmin())
-                                    <li>
-                                        <a href="{{ route('users.index') }}" class="dropdown-item py-2 px-2 text-dark d-flex align-items-center gap-2 rounded">
-                                            <i class="bi bi-shield-lock text-primary"></i>
-                                            <span class="fw-medium">Ubah Email & Kata Sandi</span>
-                                        </a>
-                                    </li>
-                                    <li><hr class="dropdown-divider my-1"></li>
-                                @endif
+                                <li>
+                                    <button type="button" class="dropdown-item py-2 px-2 text-dark d-flex align-items-center gap-2 rounded" data-bs-toggle="modal" data-bs-target="#modalUbahProfil">
+                                        <i class="bi bi-shield-lock text-primary"></i>
+                                        <span class="fw-medium">Ubah Email & Kata Sandi</span>
+                                    </button>
+                                </li>
+                                <li><hr class="dropdown-divider my-1"></li>
                                 <li>
                                     <form action="{{ route('logout') }}" method="POST">
                                         @csrf
@@ -353,6 +351,90 @@
             <div class="text-muted small">Versi 2.0 &bull; Multi-Role Ready</div>
         </div>
     </footer>
+
+    {{-- Modal Ubah Email & Kata Sandi Akun Login --}}
+    @auth
+        <div class="modal fade" id="modalUbahProfil" tabindex="-1" aria-labelledby="modalUbahProfilLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content card-custom shadow-lg border-0">
+                    <div class="modal-header border-bottom py-3 px-4" style="background-color: #0f172a; color: #ffffff;">
+                        <div>
+                            <h5 class="modal-title fs-6 fw-bold mb-0" id="modalUbahProfilLabel">
+                                <i class="bi bi-shield-lock me-1 text-primary"></i> Ubah Email & Kata Sandi
+                            </h5>
+                            <div class="small text-white-50" style="font-size: 0.75rem;">
+                                Perbarui kredensial akun login Anda ({{ auth()->user()->role_label }})
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <form action="{{ route('profile.update') }}" method="POST">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="modal-body p-4">
+                            {{-- Nama Lengkap --}}
+                            <div class="mb-3">
+                                <label for="profile_name" class="form-label small fw-semibold text-dark">Nama Lengkap <span class="text-danger">*</span></label>
+                                <input type="text" id="profile_name" name="name" class="form-control" value="{{ old('name', auth()->user()->name) }}" required>
+                                @error('name')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            {{-- Alamat Email --}}
+                            <div class="mb-3">
+                                <label for="profile_email" class="form-label small fw-semibold text-dark">Alamat Email Login <span class="text-danger">*</span></label>
+                                <input type="email" id="profile_email" name="email" class="form-control" value="{{ old('email', auth()->user()->email) }}" required>
+                                <small class="text-muted" style="font-size: 0.72rem;">Email ini digunakan saat masuk (login) ke aplikasi.</small>
+                                @error('email')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <hr class="my-3 text-muted">
+
+                            {{-- Kata Sandi Baru --}}
+                            <div class="mb-3">
+                                <label for="profile_password" class="form-label small fw-semibold text-dark">Kata Sandi Baru (Opsional)</label>
+                                <input type="password" id="profile_password" name="password" class="form-control" placeholder="Kosongkan jika tidak ingin merubah sandi" minlength="6">
+                                <small class="text-muted" style="font-size: 0.72rem;">Isi minimal 6 karakter hanya jika ingin mengganti kata sandi login.</small>
+                                @error('password')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            {{-- Konfirmasi Kata Sandi Baru --}}
+                            <div class="mb-3">
+                                <label for="profile_password_confirmation" class="form-label small fw-semibold text-dark">Ketik Ulang Kata Sandi Baru</label>
+                                <input type="password" id="profile_password_confirmation" name="password_confirmation" class="form-control" placeholder="Ulangi kata sandi baru" minlength="6">
+                            </div>
+                        </div>
+
+                        <div class="modal-footer bg-light border-top py-2.5 px-4 d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-secondary btn-sm px-3" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-brand-primary btn-sm px-3.5 shadow-sm">
+                                <i class="bi bi-check-lg me-1"></i> Simpan Perubahan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        @if($errors->has('name') || $errors->has('email') || $errors->has('password'))
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    var el = document.getElementById('modalUbahProfil');
+                    if (el) {
+                        var myModal = new bootstrap.Modal(el);
+                        myModal.show();
+                    }
+                });
+            </script>
+        @endif
+    @endauth
 
     {{-- Bootstrap JS --}}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

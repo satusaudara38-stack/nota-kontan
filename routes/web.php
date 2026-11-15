@@ -50,6 +50,9 @@ Route::middleware('auth')->group(function () {
         Route::delete('/kontak-bos/{kontakBos}', [KontakBosController::class, 'destroy'])->name('kontak-bos.destroy');
     });
 
+    // Pengaturan Profil & Kata Sandi Akun Sendiri
+    Route::put('/profile', [UserController::class, 'updateProfile'])->name('profile.update');
+
     // Manajemen Pengguna (Kelola Akun Staf): Khusus Administrator Utama (Super Admin)
     Route::middleware('role:super_admin')->group(function () {
         Route::get('/users', [UserController::class, 'index'])->name('users.index');

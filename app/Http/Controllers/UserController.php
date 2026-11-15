@@ -157,4 +157,35 @@ class UserController extends Controller
             ->route('users.index')
             ->with('success', 'Akun ' . $name . ' berhasil dihapus dari sistem.');
     }
+
+    /**
+     * Perbarui profil (nama, email, kata sandi) pengguna yang sedang login.
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = auth()->user();
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:150',
+            'email' => ['required', 'email', 'max:150', Rule::unique('users')->ignore($user->id)],
+            'password' => 'nullable|string|min:6|confirmed',
+        ], [
+            'name.required' => 'Nama lengkap wajib diisi.',
+            'email.required' => 'Alamat email login wajib diisi.',
+            'email.unique' => 'Alamat email ini sudah terdaftar untuk akun lain.',
+            'password.min' => 'Kata sandi baru minimal 6 karakter.',
+            'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
+        ]);
+
+        $user->name = $validated['name'];
+        $user->email = strtolower($validated['email']);
+
+        if (!empty($validated['password'])) {
+            $user->password = Hash::make($validated['password']);
+        }
+
+        $user->save();
+
+        return back()->with('success', 'Email dan kata sandi akun Anda berhasil diperbarui.');
+    }
 }
