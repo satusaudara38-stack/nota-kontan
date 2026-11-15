@@ -214,7 +214,7 @@
                     <th>Customer</th>
                     <th>Type Unit & Warna</th>
                     <th style="width: 160px;">Total Bayar</th>
-                    <th style="width: {{ auth()->check() && auth()->user()->isSales() ? '110px' : '220px' }};" class="text-end pe-4">Aksi Cepat</th>
+                    <th style="min-width: {{ auth()->check() && auth()->user()->isSales() ? '120px' : '280px' }};" class="text-end pe-4 text-nowrap">Aksi Cepat</th>
                 </tr>
             </thead>
             <tbody>
@@ -233,13 +233,25 @@
                             <div class="small text-muted" style="font-size: 0.72rem;">
                                 {{ $nota->isSparepart() ? 'Pelanggan Sparepart' : 'STNK: ' . $nota->stnk_bpkb_name }}
                             </div>
-                            @if($nota->isTerkirimCustomer())
-                                <div class="mt-0.5">
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-1.5" style="font-size: 0.65rem;">
-                                        <i class="bi bi-check2-all"></i> Terkirim ke Customer ({{ $nota->wa_customer_sent_at->format('d/m H:i') }})
-                                    </span>
-                                </div>
-                            @endif
+                            <div class="mt-1" id="badgeCustomerContainer{{ $nota->id }}">
+                                <button type="button" 
+                                        class="btn p-0 border-0 text-start" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#modalKirimCustomer{{ $nota->id }}"
+                                        title="Klik untuk membuka pengiriman WhatsApp atau atur status customer">
+                                    @if($nota->isTerkirimCustomer())
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-2 d-inline-flex align-items-center gap-1"
+                                              style="font-size: 0.68rem; font-weight: 500;">
+                                            <i class="bi bi-check2-all text-success"></i> Terkirim ke Customer ({{ $nota->wa_customer_sent_at->format('d/m H:i') }})
+                                        </span>
+                                    @else
+                                        <span class="badge bg-light text-muted border py-0.5 px-2 d-inline-flex align-items-center gap-1"
+                                              style="font-size: 0.68rem; font-weight: 500;">
+                                            <i class="bi bi-clock text-muted"></i> Belum ke Customer
+                                        </span>
+                                    @endif
+                                </button>
+                            </div>
                         </td>
                         <td>
                             @if($nota->isSparepart())
@@ -258,29 +270,41 @@
                                 Rp {{ $nota->formatted_total_bayar }}
                             </span>
                         </td>
-                        <td class="text-end pe-4">
+                        <td class="text-end pe-4 text-nowrap">
                             <div class="d-inline-flex flex-column align-items-end gap-1">
-                                <div class="d-inline-flex align-items-center gap-2">
-                                    <a href="{{ route('nota.show', $nota->id) }}" class="btn btn-outline-dark btn-sm py-1.5 px-3 d-inline-flex align-items-center gap-1.5" style="font-size: 0.8rem;">
+                                <div class="d-inline-flex align-items-center gap-2 text-nowrap">
+                                    {{-- 1. Detail --}}
+                                    <a href="{{ route('nota.show', $nota->id) }}" class="btn btn-outline-dark btn-sm py-1.5 px-3 d-inline-flex align-items-center gap-1.5 text-nowrap" style="font-size: 0.8rem;" title="Detail Transaksi">
                                         <i class="bi bi-eye"></i>
                                         <span>Detail</span>
                                     </a>
+
+                                    {{-- 2. PDF --}}
+                                    <a href="{{ route('nota.pdf', $nota->id) }}" target="_blank" class="btn btn-outline-danger btn-sm py-1.5 px-2.5 d-inline-flex align-items-center gap-1.5 text-nowrap" style="font-size: 0.8rem;" title="Buka PDF">
+                                        <i class="bi bi-file-earmark-pdf"></i>
+                                        <span>PDF</span>
+                                    </a>
+
+                                    {{-- 3. Kirim ke Bos --}}
                                     @if(auth()->check() && !auth()->user()->isSales())
-                                        <button type="button" class="btn btn-brand-primary btn-sm py-1.5 px-3 d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#modalKirimBos{{ $nota->id }}" style="font-size: 0.8rem;">
+                                        <button type="button" class="btn btn-brand-primary btn-sm py-1.5 px-3 d-inline-flex align-items-center gap-1.5 text-nowrap" data-bs-toggle="modal" data-bs-target="#modalKirimBos{{ $nota->id }}" style="font-size: 0.8rem;" title="Kirim Laporan Nota ke WhatsApp Pimpinan">
                                             <i class="bi bi-send"></i>
-                                            <span>Kirim ke Bos</span>
+                                            <span class="text-nowrap">Kirim ke Bos</span>
                                         </button>
                                     @endif
                                 </div>
                                 @if(auth()->check() && !auth()->user()->isSales())
-                                    <div>
+                                    <div id="badgeBosContainer{{ $nota->id }}">
                                         @if($nota->isTerkirimBos())
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-1.5" style="font-size: 0.65rem;">
-                                                <i class="bi bi-check2-all"></i> Terkirim ke Bos
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-2 d-inline-flex align-items-center gap-1 text-nowrap"
+                                                  title="Terkirim ke Bos: {{ $nota->wa_bos_sent_at->format('d/m/Y H:i') }} WIB"
+                                                  style="font-size: 0.68rem; font-weight: 500;">
+                                                <i class="bi bi-check2-all text-success"></i> Terkirim ke Bos ({{ $nota->wa_bos_sent_at->format('d/m H:i') }})
                                             </span>
                                         @else
-                                            <span class="badge bg-light text-muted border py-0.5 px-1.5" style="font-size: 0.65rem;">
-                                                <i class="bi bi-clock"></i> Belum ke Bos
+                                            <span class="badge bg-light text-muted border py-0.5 px-2 d-inline-flex align-items-center gap-1 text-nowrap"
+                                                  style="font-size: 0.68rem; font-weight: 500;">
+                                                <i class="bi bi-clock text-muted"></i> Belum ke Bos
                                             </span>
                                         @endif
                                     </div>
@@ -288,6 +312,7 @@
                             </div>
                         </td>
                     </tr>
+                    @include('nota.partials.modal-kirim-customer', ['nota' => $nota])
                     @include('nota.partials.modal-kirim-bos', ['nota' => $nota, 'bosses' => $bosses])
                 @empty
                     <tr>
@@ -351,5 +376,36 @@
         </div>
     </div>
 </div>
+
+<script>
+function updateBadgeCustomerTerkirim(notaId) {
+    const el = document.getElementById('badgeCustomerContainer' + notaId);
+    if (el) {
+        el.innerHTML = `
+            <button type="button" 
+                    class="btn p-0 border-0 text-start" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#modalKirimCustomer${notaId}">
+                <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-2 d-inline-flex align-items-center gap-1"
+                      style="font-size: 0.68rem; font-weight: 500;">
+                    <i class="bi bi-check2-all text-success"></i> Terkirim ke Customer (Baru saja)
+                </span>
+            </button>
+        `;
+    }
+}
+
+function updateBadgeBosTerkirim(notaId) {
+    const el = document.getElementById('badgeBosContainer' + notaId);
+    if (el) {
+        el.innerHTML = `
+            <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-2 d-inline-flex align-items-center gap-1 text-nowrap"
+                  style="font-size: 0.68rem; font-weight: 500;">
+                <i class="bi bi-check2-all text-success"></i> Terkirim ke Bos (Baru saja)
+            </span>
+        `;
+    }
+}
+</script>
 
 @endsection
