@@ -31,17 +31,30 @@
 </div>
 
 <div class="row g-4">
-    {{-- Kolom Kiri: Rincian Data Konfirmasi DO --}}
+    {{-- Kolom Kiri: Rincian Data Transaksi --}}
     <div class="col-lg-7">
         <div class="card card-custom p-4 mb-4">
             <div class="d-flex justify-content-between align-items-center pb-3 mb-3 border-bottom">
                 <div>
-                    <span class="text-uppercase small fw-bold text-muted" style="letter-spacing: 0.05em; font-size: 0.72rem;">Data Pembelian Mobil</span>
-                    <div class="fw-bold text-dark fs-6">{{ $nota->unit_type }}</div>
+                    @if($nota->isSparepart())
+                        <span class="text-uppercase small fw-bold text-success" style="letter-spacing: 0.05em; font-size: 0.72rem;">
+                            <i class="bi bi-tools me-1"></i> Penjualan Sparepart & Servis
+                        </span>
+                        <div class="fw-bold text-dark fs-6">{{ $nota->nama_barang }}</div>
+                    @else
+                        <span class="text-uppercase small fw-bold text-muted" style="letter-spacing: 0.05em; font-size: 0.72rem;">Data Pembelian Mobil</span>
+                        <div class="fw-bold text-dark fs-6">{{ $nota->unit_type }}</div>
+                    @endif
                 </div>
-                <span class="badge {{ $nota->cara_pembelian === 'Cash' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle' }} px-2.5 py-1 fw-semibold">
-                    {{ $nota->cara_pembelian ?: 'Credit' }}
-                </span>
+                @if($nota->isSparepart())
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 fw-semibold">
+                        Lunas / Toko
+                    </span>
+                @else
+                    <span class="badge {{ $nota->cara_pembelian === 'Cash' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle' }} px-2.5 py-1 fw-semibold">
+                        {{ $nota->cara_pembelian ?: 'Credit' }}
+                    </span>
+                @endif
             </div>
 
             <table class="table table-borderless align-middle mb-0">
@@ -58,12 +71,14 @@
                             {{ $nota->nama_customer ?? '-' }}
                         </td>
                     </tr>
-                    <tr class="border-top">
-                        <td class="text-muted small py-2">Nama STNK / BPKB</td>
-                        <td class="fw-semibold text-dark py-2">
-                            {{ $nota->stnk_bpkb_name }}
-                        </td>
-                    </tr>
+                    @if(!$nota->isSparepart())
+                        <tr class="border-top">
+                            <td class="text-muted small py-2">Nama STNK / BPKB</td>
+                            <td class="fw-semibold text-dark py-2">
+                                {{ $nota->stnk_bpkb_name }}
+                            </td>
+                        </tr>
+                    @endif
                     <tr class="border-top">
                         <td class="text-muted small py-2">No. HP / WhatsApp</td>
                         <td class="py-2">
@@ -76,43 +91,45 @@
                             @endif
                         </td>
                     </tr>
-                    <tr class="border-top">
-                        <td class="text-muted small py-2">Type Unit Mobil</td>
-                        <td class="fw-bold text-dark py-2">
-                            {{ $nota->unit_type }}
-                        </td>
-                    </tr>
-                    <tr class="border-top">
-                        <td class="text-muted small py-2">Warna Unit</td>
-                        <td class="py-2">
-                            <span class="badge bg-light text-dark border px-2 py-1">{{ $nota->warna ?: '-' }}</span>
-                        </td>
-                    </tr>
-                    <tr class="border-top">
-                        <td class="text-muted small py-2">Tahun Mobil</td>
-                        <td class="py-2 text-dark fw-medium">
-                            {{ $nota->tahun_mobil ?: '2026' }}
-                        </td>
-                    </tr>
-                    <tr class="border-top">
-                        <td class="text-muted small py-2">Cara Pembelian</td>
-                        <td class="py-2 fw-semibold text-dark">
-                            {{ $nota->cara_pembelian ?: 'Credit' }}
-                        </td>
-                    </tr>
-                    @if($nota->cara_pembelian !== 'Cash')
+                    @if(!$nota->isSparepart())
                         <tr class="border-top">
-                            <td class="text-muted small py-2">Nama Leasing</td>
-                            <td class="py-2 fw-semibold text-primary">
-                                {{ $nota->nama_leasing ?: '-' }}
+                            <td class="text-muted small py-2">Type Unit Mobil</td>
+                            <td class="fw-bold text-dark py-2">
+                                {{ $nota->unit_type }}
                             </td>
                         </tr>
                         <tr class="border-top">
-                            <td class="text-muted small py-2">Tenor Pembiayaan</td>
-                            <td class="py-2 text-dark">
-                                {{ $nota->tenor ?: '-' }}
+                            <td class="text-muted small py-2">Warna Unit</td>
+                            <td class="py-2">
+                                <span class="badge bg-light text-dark border px-2 py-1">{{ $nota->warna ?: '-' }}</span>
                             </td>
                         </tr>
+                        <tr class="border-top">
+                            <td class="text-muted small py-2">Tahun Mobil</td>
+                            <td class="py-2 text-dark fw-medium">
+                                {{ $nota->tahun_mobil ?: '2026' }}
+                            </td>
+                        </tr>
+                        <tr class="border-top">
+                            <td class="text-muted small py-2">Cara Pembelian</td>
+                            <td class="py-2 fw-semibold text-dark">
+                                {{ $nota->cara_pembelian ?: 'Credit' }}
+                            </td>
+                        </tr>
+                        @if($nota->cara_pembelian !== 'Cash')
+                            <tr class="border-top">
+                                <td class="text-muted small py-2">Nama Leasing</td>
+                                <td class="py-2 fw-semibold text-primary">
+                                    {{ $nota->nama_leasing ?: '-' }}
+                                </td>
+                            </tr>
+                            <tr class="border-top">
+                                <td class="text-muted small py-2">Tenor Pembiayaan</td>
+                                <td class="py-2 text-dark">
+                                    {{ $nota->tenor ?: '-' }}
+                                </td>
+                            </tr>
+                        @endif
                     @endif
                     <tr class="border-top">
                         <td class="text-muted small py-2">Total Diskon</td>
@@ -136,13 +153,46 @@
                         </td>
                     </tr>
                     <tr class="border-top" style="background-color: #f8fafc;">
-                        <td class="text-muted fw-semibold py-3 ps-2">Total Bayar (DP / Pelunasan)</td>
+                        <td class="text-muted fw-semibold py-3 ps-2">Total Bayar</td>
                         <td class="fw-bold text-success fs-5 py-3 pe-2">
                             Rp {{ $nota->formatted_total_bayar }}
                         </td>
                     </tr>
                 </tbody>
             </table>
+
+            {{-- Tabel Rincian Barang jika Sparepart --}}
+            @if($nota->isSparepart())
+                <div class="mt-4 pt-3 border-top">
+                    <h6 class="fw-bold text-dark small text-uppercase mb-2" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+                        <i class="bi bi-box-seam me-1"></i> Rincian Barang / Sparepart Dibeli:
+                    </h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 35px;" class="text-center">#</th>
+                                    <th>Nama Part / Barang</th>
+                                    <th style="width: 70px;" class="text-center">Qty</th>
+                                    <th style="width: 120px;" class="text-end">Harga Satuan</th>
+                                    <th style="width: 130px;" class="text-end">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($nota->items_list as $idx => $it)
+                                    <tr>
+                                        <td class="text-center text-muted small">{{ $idx + 1 }}</td>
+                                        <td class="fw-semibold text-dark">{{ $it['nama'] ?? '-' }}</td>
+                                        <td class="text-center">{{ $it['qty'] ?? 1 }}</td>
+                                        <td class="text-end">Rp {{ number_format((int)($it['harga'] ?? 0), 0, ',', '.') }}</td>
+                                        <td class="text-end fw-bold text-success">Rp {{ number_format((int)($it['subtotal'] ?? 0), 0, ',', '.') }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
 
             {{-- Action buttons bar --}}
             <div class="d-flex flex-wrap gap-2 pt-4 mt-3 border-top">
@@ -175,7 +225,7 @@
         <div class="card card-custom p-3.5 mb-4 shadow-sm">
             <div class="d-flex justify-content-between align-items-center pb-2 mb-2 border-bottom">
                 <span class="small fw-bold text-dark text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.05em;">
-                    <i class="bi bi-chat-text text-success me-1"></i> Teks Konfirmasi DO (Format WA)
+                    <i class="bi bi-chat-text text-success me-1"></i> Teks Konfirmasi {{ $nota->isSparepart() ? 'Sparepart & Servis' : 'DO Mobil' }} (Format WA)
                 </span>
                 <span class="badge bg-light text-muted border" style="font-size: 0.68rem;">SOP Astra Daihatsu</span>
             </div>

@@ -142,51 +142,84 @@
                 <div>
                     <div class="brand-logo-text">ASTRA DAIHATSU</div>
                     <div class="text-muted small text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.05em;">
-                        Palembang Veteran &bull; Konfirmasi Pembelian Unit Mobil (DO)
+                        @if($nota->isSparepart())
+                            Palembang Veteran &bull; Tanda Terima Pembelian Sparepart & Servis
+                        @else
+                            Palembang Veteran &bull; Konfirmasi Pembelian Unit Mobil (DO)
+                        @endif
                     </div>
                 </div>
 
                 <div class="text-start text-sm-end">
                     <div class="fw-bold fs-6 text-dark">
-                        #DO-{{ str_pad($nota->id, 5, '0', STR_PAD_LEFT) }}
+                        @if($nota->isSparepart())
+                            #NK-{{ str_pad($nota->id, 5, '0', STR_PAD_LEFT) }}
+                        @else
+                            #DO-{{ str_pad($nota->id, 5, '0', STR_PAD_LEFT) }}
+                        @endif
                     </div>
                     <div class="text-muted small" style="font-size: 0.78rem;">
                         Tanggal: {{ $nota->tanggal_upload ? \Carbon\Carbon::parse($nota->tanggal_upload)->format('d/m/Y') : '-' }}
                     </div>
-                    <span class="badge {{ $nota->cara_pembelian === 'Cash' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle' }} px-2.5 py-1 fw-bold mt-1" style="font-size: 0.72rem;">
-                        {{ $nota->cara_pembelian ?: 'Credit' }}
-                    </span>
+                    @if($nota->isSparepart())
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 fw-bold mt-1" style="font-size: 0.72rem;">
+                            Lunas / Toko
+                        </span>
+                    @else
+                        <span class="badge {{ $nota->cara_pembelian === 'Cash' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle' }} px-2.5 py-1 fw-bold mt-1" style="font-size: 0.72rem;">
+                            {{ $nota->cara_pembelian ?: 'Credit' }}
+                        </span>
+                    @endif
                 </div>
             </div>
 
             {{-- Metadata Transaksi & Customer --}}
             <div class="row g-3 mb-4 small p-3 rounded-3" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
-                <div class="col-sm-6">
-                    <div class="text-muted" style="font-size: 0.72rem;">Nama Customer:</div>
-                    <div class="fw-bold text-dark fs-6">{{ $nota->nama_customer ?? '-' }}</div>
-                    <div class="text-muted mt-1" style="font-size: 0.72rem;">Nama STNK / BPKB:</div>
-                    <div class="fw-semibold text-dark">{{ $nota->stnk_bpkb_name }}</div>
-                    @if($nota->nomor_wa)
-                        <div class="text-muted d-flex align-items-center gap-1 mt-1">
-                            <i class="bi bi-whatsapp text-success"></i>
-                            <span>{{ $nota->nomor_wa }}</span>
-                        </div>
-                    @endif
-                </div>
+                @if($nota->isSparepart())
+                    <div class="col-sm-6">
+                        <div class="text-muted" style="font-size: 0.72rem;">Nama Customer:</div>
+                        <div class="fw-bold text-dark fs-6">{{ $nota->nama_customer ?? '-' }}</div>
+                        @if($nota->nomor_wa)
+                            <div class="text-muted d-flex align-items-center gap-1 mt-1">
+                                <i class="bi bi-whatsapp text-success"></i>
+                                <span>{{ $nota->nomor_wa }}</span>
+                            </div>
+                        @endif
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="text-muted" style="font-size: 0.72rem;">Kategori Transaksi:</div>
+                        <div class="fw-bold text-dark fs-6">Penjualan Sparepart & Servis Kantor</div>
+                        <div class="text-muted mt-1" style="font-size: 0.72rem;">Petugas Input / Kasir:</div>
+                        <div class="fw-semibold text-dark">{{ $nota->user ? $nota->user->name : 'Admin Kantor' }}</div>
+                    </div>
+                @else
+                    <div class="col-sm-6">
+                        <div class="text-muted" style="font-size: 0.72rem;">Nama Customer:</div>
+                        <div class="fw-bold text-dark fs-6">{{ $nota->nama_customer ?? '-' }}</div>
+                        <div class="text-muted mt-1" style="font-size: 0.72rem;">Nama STNK / BPKB:</div>
+                        <div class="fw-semibold text-dark">{{ $nota->stnk_bpkb_name }}</div>
+                        @if($nota->nomor_wa)
+                            <div class="text-muted d-flex align-items-center gap-1 mt-1">
+                                <i class="bi bi-whatsapp text-success"></i>
+                                <span>{{ $nota->nomor_wa }}</span>
+                            </div>
+                        @endif
+                    </div>
 
-                <div class="col-sm-6">
-                    <div class="text-muted" style="font-size: 0.72rem;">Type Unit Mobil:</div>
-                    <div class="fw-bold text-dark fs-6">{{ $nota->unit_type }}</div>
-                    <div class="text-muted mt-1" style="font-size: 0.72rem;">Warna & Tahun:</div>
-                    <div class="fw-semibold text-dark">{{ $nota->warna ?: '-' }} &bull; Tahun {{ $nota->tahun_mobil ?: '2026' }}</div>
-                    @if($nota->cara_pembelian !== 'Cash')
-                        <div class="text-muted mt-1" style="font-size: 0.72rem;">Leasing & Tenor:</div>
-                        <div class="fw-semibold text-primary">{{ $nota->nama_leasing ?: '-' }} ({{ $nota->tenor ?: '-' }})</div>
-                    @else
-                        <div class="text-muted mt-1" style="font-size: 0.72rem;">Skema Pembelian:</div>
-                        <div class="fw-semibold text-success">Pembelian Tunai (Cash)</div>
-                    @endif
-                </div>
+                    <div class="col-sm-6">
+                        <div class="text-muted" style="font-size: 0.72rem;">Type Unit Mobil:</div>
+                        <div class="fw-bold text-dark fs-6">{{ $nota->unit_type }}</div>
+                        <div class="text-muted mt-1" style="font-size: 0.72rem;">Warna & Tahun:</div>
+                        <div class="fw-semibold text-dark">{{ $nota->warna ?: '-' }} &bull; Tahun {{ $nota->tahun_mobil ?: '2026' }}</div>
+                        @if($nota->cara_pembelian !== 'Cash')
+                            <div class="text-muted mt-1" style="font-size: 0.72rem;">Leasing & Tenor:</div>
+                            <div class="fw-semibold text-primary">{{ $nota->nama_leasing ?: '-' }} ({{ $nota->tenor ?: '-' }})</div>
+                        @else
+                            <div class="text-muted mt-1" style="font-size: 0.72rem;">Skema Pembelian:</div>
+                            <div class="fw-semibold text-success">Pembelian Tunai (Cash)</div>
+                        @endif
+                    </div>
+                @endif
             </div>
 
             {{-- Tabel Barang / Jasa --}}

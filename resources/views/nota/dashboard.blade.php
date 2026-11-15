@@ -230,11 +230,21 @@
                         </td>
                         <td>
                             <div class="fw-bold text-dark mb-0.5">{{ $nota->nama_customer }}</div>
-                            <div class="small text-muted" style="font-size: 0.72rem;">STNK: {{ $nota->stnk_bpkb_name }}</div>
+                            <div class="small text-muted" style="font-size: 0.72rem;">
+                                {{ $nota->isSparepart() ? 'Pelanggan Sparepart' : 'STNK: ' . $nota->stnk_bpkb_name }}
+                            </div>
                         </td>
                         <td>
-                            <div class="fw-bold text-dark">{{ $nota->unit_type }}</div>
-                            <small class="text-muted" style="font-size: 0.72rem;">{{ $nota->warna ?: '-' }} &bull; {{ $nota->cara_pembelian ?: 'Credit' }}</small>
+                            @if($nota->isSparepart())
+                                <span class="badge bg-success-subtle text-success border border-success-subtle me-1" style="font-size: 0.68rem;">
+                                    <i class="bi bi-tools"></i> Sparepart
+                                </span>
+                                <div class="fw-bold text-dark text-truncate" style="max-width: 220px;" title="{{ $nota->nama_barang }}">{{ $nota->nama_barang }}</div>
+                                <small class="text-muted" style="font-size: 0.72rem;">{{ count($nota->items_list) }} macam part &bull; Tunai</small>
+                            @else
+                                <div class="fw-bold text-dark">{{ $nota->unit_type }}</div>
+                                <small class="text-muted" style="font-size: 0.72rem;">{{ $nota->warna ?: '-' }} &bull; {{ $nota->cara_pembelian ?: 'Credit' }}</small>
+                            @endif
                         </td>
                         <td>
                             <span class="fw-bold text-success fs-6">

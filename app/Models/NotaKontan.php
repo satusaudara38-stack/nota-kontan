@@ -8,6 +8,7 @@ class NotaKontan extends Model
 {
     protected $fillable = [
         'user_id',
+        'kategori_transaksi',
         'nama_customer',
         'nama_stnk_bpkb',
         'type_unit',
@@ -30,6 +31,40 @@ class NotaKontan extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Cek apakah transaksi merupakan penjualan suku cadang / sparepart
+     */
+    public function isSparepart(): bool
+    {
+        return ($this->kategori_transaksi === 'sparepart');
+    }
+
+    /**
+     * Cek apakah transaksi merupakan delivery order mobil
+     */
+    public function isMobil(): bool
+    {
+        return !$this->isSparepart();
+    }
+
+    /**
+     * Label Kategori Transaksi
+     */
+    public function getKategoriLabelAttribute(): string
+    {
+        return $this->isSparepart() ? 'Sparepart & Servis' : 'Unit Mobil (DO)';
+    }
+
+    /**
+     * Badge CSS class untuk Kategori Transaksi
+     */
+    public function getKategoriBadgeClassAttribute(): string
+    {
+        return $this->isSparepart() 
+            ? 'bg-success-subtle text-success border border-success-subtle' 
+            : 'bg-primary-subtle text-primary border border-primary-subtle';
     }
 
     protected function casts(): array
@@ -106,12 +141,40 @@ class NotaKontan extends Model
         $timestamp = $this->created_at 
             ? $this->created_at->format('d/m/Y H:i:s') 
             : ($this->tanggal_upload ? $this->tanggal_upload->format('d/m/Y 12:00:00') : date('d/m/Y H:i:s'));
+
+        $totalBayar = $this->formatted_total_bayar;
+        $totalDiskon = $this->formatted_total_diskon;
+
+        // Jika Transaksi Sparepart / Servis
+        if ($this->isSparepart()) {
+            $itemsText = "";
+            $items = $this->items_list;
+            foreach ($items as $idx => $it) {
+                $nomor = $idx + 1;
+                $nama = $it['nama'] ?? '-';
+                $qty = $it['qty'] ?? 1;
+                $harga = number_format((int)($it['harga'] ?? 0), 0, ',', '.');
+                $subtotal = number_format((int)($it['subtotal'] ?? 0), 0, ',', '.');
+                $itemsText .= "{$nomor}. {$nama} ({$qty}x @Rp {$harga}) = Rp {$subtotal}\n";
+            }
+
+            return "Data Konfirmasi Pembelian Sparepart / Servis\n"
+                . "ASTRA DAIHATSU Palembang Veteran\n\n"
+                . "No HP Customer : {$this->nomor_wa}\n"
+                . "Nama Customer : {$this->nama_customer}\n"
+                . "Kategori : Penjualan Sparepart & Servis\n\n"
+                . "Rincian Pembelian:\n"
+                . "{$itemsText}\n"
+                . "Total Diskon : Rp {$totalDiskon}\n"
+                . "Total Bayar : Rp {$totalBayar}\n"
+                . "Status Pembayaran : Lunas (Cash / Transfer)\n"
+                . "Timestamp : {$timestamp}\n\n"
+                . "Terima kasih telah mempercayakan perawatan kendaraan Anda di Astra Daihatsu.";
+        }
         
         $stnk = $this->stnk_bpkb_name;
         $unit = $this->unit_type;
         $warna = $this->warna ?: '-';
-        $totalBayar = $this->formatted_total_bayar;
-        $totalDiskon = $this->formatted_total_diskon;
         $cara = $this->cara_pembelian ?: 'Credit';
         $leasing = ($cara === 'Cash') ? '-' : ($this->nama_leasing ?: '-');
         $tenor = ($cara === 'Cash') ? '-' : ($this->tenor ?: '-');
@@ -156,11 +219,40 @@ class NotaKontan extends Model
     public function getBossWaMessage(KontakBos $boss = null): string
     {
         $customer = $this->nama_customer ?: '-';
+        $totalBayar = $this->formatted_total_bayar;
+        $totalDiskon = $this->formatted_total_diskon;
+        $namaPimpinan = $boss ? $boss->nama : 'Pimpinan';
+
+        // Jika Transaksi Sparepart / Servis
+        if ($this->isSparepart()) {
+            $itemsText = "";
+            $items = $this->items_list;
+            foreach ($items as $idx => $it) {
+                $nomor = $idx + 1;
+                $nama = $it['nama'] ?? '-';
+                $qty = $it['qty'] ?? 1;
+                $subtotal = number_format((int)($it['subtotal'] ?? 0), 0, ',', '.');
+                $itemsText .= "{$nomor}. {$nama} ({$qty}x) = Rp {$subtotal}\n";
+            }
+            $petugas = $this->user ? $this->user->name : 'Admin Kantor';
+
+            return "Yth Bapak/Ibu. {$namaPimpinan}\n\n"
+                . "Kami dari ASTRA DAIHATSU Palembang Veteran\n"
+                . "Laporan Kas Masuk - Penjualan Sparepart / Servis Kantor:\n\n"
+                . "Nama Customer : {$customer}\n"
+                . "No HP Customer : {$this->nomor_wa}\n"
+                . "Kategori : Sparepart & Servis\n\n"
+                . "Rincian Barang:\n"
+                . "{$itemsText}\n"
+                . "Total Diskon : Rp {$totalDiskon}\n"
+                . "Total Kas Masuk : Rp {$totalBayar}\n"
+                . "Petugas Input : {$petugas}\n\n"
+                . "Terimakasih atas perhatiannya.";
+        }
+
         $stnk = $this->stnk_bpkb_name;
         $unit = $this->unit_type;
         $warna = $this->warna ?: '-';
-        $totalBayar = $this->formatted_total_bayar;
-        $totalDiskon = $this->formatted_total_diskon;
         $cara = $this->cara_pembelian ?: 'Credit';
         $leasing = ($cara === 'Cash') ? '-' : ($this->nama_leasing ?: '-');
         $tenor = ($cara === 'Cash') ? '-' : ($this->tenor ?: '-');

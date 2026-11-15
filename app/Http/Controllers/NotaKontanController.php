@@ -83,11 +83,22 @@ class NotaKontanController extends Controller
         if ($request->filled('tanggal_sampai')) {
             $query->where('tanggal_upload', '<=', $request->tanggal_sampai);
         }
+        if ($request->filled('kategori')) {
+            if ($request->kategori === 'sparepart') {
+                $query->where('kategori_transaksi', 'sparepart');
+            } elseif ($request->kategori === 'mobil') {
+                $query->where(function ($q) {
+                    $q->where('kategori_transaksi', 'mobil')
+                      ->orWhereNull('kategori_transaksi');
+                });
+            }
+        }
         if ($request->filled('cari')) {
             $cari = $request->cari;
             $query->where(function ($q) use ($cari) {
                 $q->where('nama_customer', 'like', '%' . $cari . '%')
-                  ->orWhere('nama_barang', 'like', '%' . $cari . '%');
+                  ->orWhere('nama_barang', 'like', '%' . $cari . '%')
+                  ->orWhere('type_unit', 'like', '%' . $cari . '%');
             });
         }
 
@@ -98,7 +109,8 @@ class NotaKontanController extends Controller
         $filterAktif = $request->filled('tanggal_dari')
             || $request->filled('tanggal_sampai')
             || $request->filled('cari')
-            || $request->filled('sales_id');
+            || $request->filled('sales_id')
+            || $request->filled('kategori');
 
         return view('nota.index', compact('notas', 'bosses', 'salesList', 'filterAktif'));
     }
@@ -110,6 +122,98 @@ class NotaKontanController extends Controller
 
     public function store(Request $request)
     {
+        $user = auth()->user();
+        $isSales = $user && $user->isSales();
+        $kategori = $isSales ? 'mobil' : $request->input('kategori_transaksi', 'mobil');
+        if (!in_array($kategori, ['mobil', 'sparepart'])) {
+            $kategori = 'mobil';
+        }
+
+        // ==========================================
+        // ALUR INPUT KHUSUS: SPAREPART & SERVIS
+        // ==========================================
+        if ($kategori === 'sparepart') {
+            $validated = $request->validate([
+                'nama_customer' => 'required|string|max:255',
+                'nomor_wa' => 'required|string|max:25',
+                'tanggal_upload' => 'required|date',
+                'bukti_pembayaran' => 'required|image|mimes:jpg,jpeg,png,webp,heic,heif|max:20480',
+                'total_diskon' => 'nullable|numeric|min:0',
+                'nominal_pembayaran' => 'nullable|numeric|min:0',
+                'items' => 'required|array|min:1',
+                'items.*.nama' => 'required|string|max:255',
+                'items.*.qty' => 'required|numeric|min:1',
+                'items.*.harga' => 'required|numeric|min:0',
+            ]);
+
+            $items = [];
+            $computedTotal = 0;
+            foreach ($request->items as $item) {
+                $nama = trim($item['nama'] ?? '');
+                if ($nama === '') {
+                    continue;
+                }
+                $qty = max(1, (int) ($item['qty'] ?? 1));
+                $harga = max(0, (int) ($item['harga'] ?? 0));
+                $subtotal = $qty * $harga;
+                $computedTotal += $subtotal;
+
+                $items[] = [
+                    'nama' => $nama,
+                    'qty' => $qty,
+                    'harga' => $harga,
+                    'subtotal' => $subtotal,
+                ];
+            }
+
+            if (empty($items)) {
+                return back()->withErrors(['items' => 'Minimal harus memasukkan 1 rincian sparepart/barang yang valid.'])->withInput();
+            }
+
+            $totalDiskon = (int) ($request->input('total_diskon', 0) ?: 0);
+            $totalBayar = max(0, $computedTotal - $totalDiskon);
+            if ($totalBayar === 0 && !empty($validated['nominal_pembayaran'])) {
+                $totalBayar = (int) $validated['nominal_pembayaran'];
+            }
+
+            $firstItem = $items[0]['nama'];
+            $moreCount = count($items) - 1;
+            $namaBarangSummary = $firstItem . ($moreCount > 0 ? " (+{$moreCount} item)" : '');
+
+            // Simpan bukti transfer / struk
+            $file = $request->file('bukti_pembayaran');
+            $path = $file->store('nota-kontan', 'public');
+
+            NotaKontan::create([
+                'user_id' => auth()->id(),
+                'kategori_transaksi' => 'sparepart',
+                'nama_customer' => $validated['nama_customer'],
+                'nomor_wa' => $validated['nomor_wa'],
+                'nama_stnk_bpkb' => $validated['nama_customer'],
+                'type_unit' => 'Sparepart & Servis',
+                'warna' => '-',
+                'nama_barang' => $namaBarangSummary,
+                'items' => $items,
+                'nominal_pembayaran' => $totalBayar,
+                'total_diskon' => $totalDiskon,
+                'cara_pembelian' => 'Cash',
+                'nama_leasing' => '-',
+                'tenor' => '-',
+                'tahun_mobil' => date('Y'),
+                'tanggal_upload' => $validated['tanggal_upload'],
+                'bukti_pembayaran' => $path,
+                'nama_file' => $file->getClientOriginalName(),
+                'path_file' => $path,
+            ]);
+
+            return redirect()
+                ->route('nota.index')
+                ->with('success', 'Transaksi penjualan sparepart & servis berhasil dicatat.');
+        }
+
+        // ==========================================
+        // ALUR INPUT: PENJUALAN UNIT MOBIL (DO)
+        // ==========================================
         $validated = $request->validate([
             'nama_customer' => 'required|string|max:255',
             'nomor_wa' => 'required|string|max:25',
@@ -140,6 +244,7 @@ class NotaKontanController extends Controller
             $validated['tenor'] = '-';
         }
 
+        $validated['kategori_transaksi'] = 'mobil';
         $validated['total_diskon'] = (int) ($request->input('total_diskon', 0) ?: 0);
         $totalNominal = (int) $validated['nominal_pembayaran'];
         $namaBarangSummary = $validated['type_unit'] . ' (' . $validated['warna'] . ')';
@@ -194,7 +299,7 @@ class NotaKontanController extends Controller
 
         return redirect()
             ->route('nota.index')
-            ->with('success', 'Data transaksi pembelian mobil / nota kontan berhasil disimpan.');
+            ->with('success', 'Data transaksi pembelian mobil / delivery order berhasil disimpan.');
     }
 
     public function show(NotaKontan $nota)
@@ -304,6 +409,92 @@ class NotaKontanController extends Controller
             abort(403, 'Akses Ditolak: Anda tidak memiliki wewenang untuk mengedit nota milik staf lain.');
         }
 
+        $kategori = $nota->kategori_transaksi ?: 'mobil';
+
+        // UPDATE KHUSUS SPAREPART
+        if ($kategori === 'sparepart') {
+            $validated = $request->validate([
+                'nama_customer' => 'required|string|max:255',
+                'nomor_wa' => 'required|string|max:25',
+                'tanggal_upload' => 'required|date',
+                'bukti_pembayaran' => 'nullable|image|mimes:jpg,jpeg,png,webp,heic,heif|max:20480',
+                'total_diskon' => 'nullable|numeric|min:0',
+                'nominal_pembayaran' => 'nullable|numeric|min:0',
+                'items' => 'required|array|min:1',
+                'items.*.nama' => 'required|string|max:255',
+                'items.*.qty' => 'required|numeric|min:1',
+                'items.*.harga' => 'required|numeric|min:0',
+            ]);
+
+            $items = [];
+            $computedTotal = 0;
+            foreach ($request->items as $item) {
+                $nama = trim($item['nama'] ?? '');
+                if ($nama === '') continue;
+                $qty = max(1, (int) ($item['qty'] ?? 1));
+                $harga = max(0, (int) ($item['harga'] ?? 0));
+                $subtotal = $qty * $harga;
+                $computedTotal += $subtotal;
+
+                $items[] = [
+                    'nama' => $nama,
+                    'qty' => $qty,
+                    'harga' => $harga,
+                    'subtotal' => $subtotal,
+                ];
+            }
+
+            if (empty($items)) {
+                return back()->withErrors(['items' => 'Minimal harus memasukkan 1 rincian sparepart yang valid.'])->withInput();
+            }
+
+            $totalDiskon = (int) ($request->input('total_diskon', 0) ?: 0);
+            $totalBayar = max(0, $computedTotal - $totalDiskon);
+            if ($totalBayar === 0 && !empty($validated['nominal_pembayaran'])) {
+                $totalBayar = (int) $validated['nominal_pembayaran'];
+            }
+
+            $firstItem = $items[0]['nama'];
+            $moreCount = count($items) - 1;
+            $namaBarangSummary = $firstItem . ($moreCount > 0 ? " (+{$moreCount} item)" : '');
+
+            $data = [
+                'nama_customer' => $validated['nama_customer'],
+                'nomor_wa' => $validated['nomor_wa'],
+                'nama_stnk_bpkb' => $validated['nama_customer'],
+                'type_unit' => 'Sparepart & Servis',
+                'warna' => '-',
+                'nama_barang' => $namaBarangSummary,
+                'items' => $items,
+                'nominal_pembayaran' => $totalBayar,
+                'total_diskon' => $totalDiskon,
+                'cara_pembelian' => 'Cash',
+                'nama_leasing' => '-',
+                'tenor' => '-',
+                'tanggal_upload' => $validated['tanggal_upload'],
+            ];
+
+            if ($request->hasFile('bukti_pembayaran')) {
+                if ($nota->bukti_pembayaran && Storage::disk('public')->exists($nota->bukti_pembayaran)) {
+                    Storage::disk('public')->delete($nota->bukti_pembayaran);
+                }
+
+                $file = $request->file('bukti_pembayaran');
+                $path = $file->store('nota-kontan', 'public');
+
+                $data['bukti_pembayaran'] = $path;
+                $data['nama_file'] = $file->getClientOriginalName();
+                $data['path_file'] = $path;
+            }
+
+            $nota->update($data);
+
+            return redirect()
+                ->route('nota.index')
+                ->with('success', 'Data transaksi penjualan sparepart berhasil diperbarui.');
+        }
+
+        // UPDATE KHUSUS MOBIL
         $validated = $request->validate([
             'nama_customer' => 'required|string|max:255',
             'nomor_wa' => 'required|string|max:25',

@@ -19,8 +19,10 @@
                 {{-- Ringkasan Dokumen Konfirmasi DO --}}
                 <div class="p-3 rounded-3 mb-3" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
                     <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
-                        <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.05em;">Konfirmasi DO Astra Daihatsu</span>
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-semibold">
+                        <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.05em;">
+                            {{ $nota->isSparepart() ? 'Penjualan Sparepart & Servis' : 'Konfirmasi DO Astra Daihatsu' }}
+                        </span>
+                        <span class="badge {{ $nota->isSparepart() ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle' }} fw-semibold">
                             Total: Rp {{ $nota->formatted_total_bayar }}
                         </span>
                     </div>
@@ -29,14 +31,22 @@
                         <div class="col-4 text-muted">Customer</div>
                         <div class="col-8 fw-semibold text-dark">{{ $nota->nama_customer }}</div>
 
-                        <div class="col-4 text-muted">STNK/BPKB</div>
-                        <div class="col-8 text-dark">{{ $nota->stnk_bpkb_name }}</div>
+                        @if($nota->isSparepart())
+                            <div class="col-4 text-muted">Rincian Part</div>
+                            <div class="col-8 text-dark">{{ $nota->nama_barang }}</div>
 
-                        <div class="col-4 text-muted">Type Unit</div>
-                        <div class="col-8 text-dark fw-semibold">{{ $nota->unit_type }} ({{ $nota->warna ?: '-' }})</div>
+                            <div class="col-4 text-muted">Jumlah Item</div>
+                            <div class="col-8 text-dark">{{ count($nota->items_list) }} macam part/jasa</div>
+                        @else
+                            <div class="col-4 text-muted">STNK/BPKB</div>
+                            <div class="col-8 text-dark">{{ $nota->stnk_bpkb_name }}</div>
 
-                        <div class="col-4 text-muted">Skema</div>
-                        <div class="col-8 text-dark">{{ $nota->cara_pembelian ?: 'Credit' }} {{ $nota->cara_pembelian !== 'Cash' && $nota->nama_leasing ? '• ' . $nota->nama_leasing : '' }}</div>
+                            <div class="col-4 text-muted">Type Unit</div>
+                            <div class="col-8 text-dark fw-semibold">{{ $nota->unit_type }} ({{ $nota->warna ?: '-' }})</div>
+
+                            <div class="col-4 text-muted">Skema</div>
+                            <div class="col-8 text-dark">{{ $nota->cara_pembelian ?: 'Credit' }} {{ $nota->cara_pembelian !== 'Cash' && $nota->nama_leasing ? '• ' . $nota->nama_leasing : '' }}</div>
+                        @endif
 
                         <div class="col-4 text-muted">Diskon</div>
                         <div class="col-8 text-danger fw-semibold">Rp {{ $nota->formatted_total_diskon }}</div>

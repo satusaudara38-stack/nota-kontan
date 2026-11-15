@@ -66,6 +66,18 @@
                            onchange="document.getElementById('formFilter').submit()">
                 </div>
 
+                {{-- Filter Kategori Transaksi (Mobil vs Sparepart) --}}
+                <div class="col-6 col-md-2">
+                    <label for="kategori" class="form-label small fw-semibold text-dark mb-1">
+                        <i class="bi bi-tags me-1 text-muted"></i>Kategori
+                    </label>
+                    <select name="kategori" id="kategori" class="form-select form-select-sm" onchange="document.getElementById('formFilter').submit()">
+                        <option value="">Semua Kategori</option>
+                        <option value="mobil" {{ request('kategori') === 'mobil' ? 'selected' : '' }}>🚗 Unit Mobil (DO)</option>
+                        <option value="sparepart" {{ request('kategori') === 'sparepart' ? 'selected' : '' }}>🔧 Sparepart & Servis</option>
+                    </select>
+                </div>
+
                 {{-- Filter Petugas / Sales (Khusus Super Admin & Admin Kantor) --}}
                 @if(auth()->check() && !auth()->user()->isSales() && isset($salesList) && $salesList->isNotEmpty())
                     <div class="col-12 col-md-3">
@@ -187,9 +199,15 @@
                             <div class="fw-bold text-dark mb-0.5">
                                 {{ $nota->nama_customer ?? '-' }}
                             </div>
-                            <div class="small text-muted" style="font-size: 0.72rem;">
-                                STNK: {{ $nota->stnk_bpkb_name }}
-                            </div>
+                            @if($nota->isSparepart())
+                                <div class="small text-muted" style="font-size: 0.72rem;">
+                                    <i class="bi bi-shop text-muted me-1"></i>Pelanggan Part Kantor
+                                </div>
+                            @else
+                                <div class="small text-muted" style="font-size: 0.72rem;">
+                                    STNK: {{ $nota->stnk_bpkb_name }}
+                                </div>
+                            @endif
                             @if($nota->nomor_wa)
                                 <div class="small text-muted d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;">
                                     <i class="bi bi-whatsapp text-success"></i>
@@ -200,24 +218,46 @@
 
                         {{-- Type Unit & Warna --}}
                         <td>
-                            <div class="text-dark fw-bold mb-0.5">
-                                {{ $nota->unit_type }}
-                            </div>
-                            <div class="small text-muted d-inline-flex align-items-center gap-1.5" style="font-size: 0.72rem;">
-                                <span class="badge bg-light text-dark border">{{ $nota->warna ?: '-' }}</span>
-                                <span>Thn {{ $nota->tahun_mobil ?: '2026' }}</span>
-                            </div>
+                            @if($nota->isSparepart())
+                                <span class="badge bg-success-subtle text-success border border-success-subtle mb-1 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;">
+                                    <i class="bi bi-tools"></i> Sparepart
+                                </span>
+                                <div class="text-dark fw-bold mb-0.5 text-truncate" style="max-width: 220px;" title="{{ $nota->nama_barang }}">
+                                    {{ $nota->nama_barang }}
+                                </div>
+                                <div class="small text-muted" style="font-size: 0.72rem;">
+                                    {{ count($nota->items_list) }} macam part/jasa
+                                </div>
+                            @else
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle mb-1 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;">
+                                    <i class="bi bi-car-front"></i> Unit Mobil
+                                </span>
+                                <div class="text-dark fw-bold mb-0.5">
+                                    {{ $nota->unit_type }}
+                                </div>
+                                <div class="small text-muted d-inline-flex align-items-center gap-1.5" style="font-size: 0.72rem;">
+                                    <span class="badge bg-light text-dark border">{{ $nota->warna ?: '-' }}</span>
+                                    <span>Thn {{ $nota->tahun_mobil ?: '2026' }}</span>
+                                </div>
+                            @endif
                         </td>
 
                         {{-- Skema Pembelian --}}
                         <td>
-                            <span class="badge {{ $nota->cara_pembelian === 'Cash' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle' }} fw-semibold mb-0.5" style="font-size: 0.72rem;">
-                                {{ $nota->cara_pembelian ?: 'Credit' }}
-                            </span>
-                            @if($nota->cara_pembelian !== 'Cash' && $nota->nama_leasing && $nota->nama_leasing !== '-')
-                                <div class="small text-muted" style="font-size: 0.72rem;">
-                                    {{ $nota->nama_leasing }} {{ $nota->tenor && $nota->tenor !== '-' ? '• ' . $nota->tenor : '' }}
-                                </div>
+                            @if($nota->isSparepart())
+                                <span class="badge bg-secondary-subtle text-secondary border fw-semibold mb-0.5" style="font-size: 0.72rem;">
+                                    Tunai / Kasir
+                                </span>
+                                <div class="small text-muted" style="font-size: 0.72rem;">Toko / Servis</div>
+                            @else
+                                <span class="badge {{ $nota->cara_pembelian === 'Cash' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle' }} fw-semibold mb-0.5" style="font-size: 0.72rem;">
+                                    {{ $nota->cara_pembelian ?: 'Credit' }}
+                                </span>
+                                @if($nota->cara_pembelian !== 'Cash' && $nota->nama_leasing && $nota->nama_leasing !== '-')
+                                    <div class="small text-muted" style="font-size: 0.72rem;">
+                                        {{ $nota->nama_leasing }} {{ $nota->tenor && $nota->tenor !== '-' ? '• ' . $nota->tenor : '' }}
+                                    </div>
+                                @endif
                             @endif
                         </td>
 

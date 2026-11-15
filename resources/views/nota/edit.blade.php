@@ -12,7 +12,9 @@
                 <i class="bi bi-arrow-left"></i>
             </a>
             <div>
-                <h1 class="h5 fw-bold text-dark mb-0">Edit Konfirmasi DO #{{ str_pad($nota->id, 5, '0', STR_PAD_LEFT) }}</h1>
+                <h1 class="h5 fw-bold text-dark mb-0">
+                    Edit {{ $nota->isSparepart() ? 'Penjualan Sparepart' : 'Konfirmasi DO' }} #{{ str_pad($nota->id, 5, '0', STR_PAD_LEFT) }}
+                </h1>
                 <span class="text-muted small">ASTRA DAIHATSU Palembang Veteran &bull; Perbarui Data Transaksi & Bukti Bayar</span>
             </div>
         </div>
@@ -22,312 +24,448 @@
                 @csrf
                 @method('PUT')
 
-                {{-- SECTION 1: DATA PELANGGAN --}}
-                <div class="mb-4">
-                    <div class="d-flex align-items-center gap-2 pb-2 mb-3 border-bottom">
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-circle d-flex align-items-center justify-content-center" style="width: 26px; height: 26px; font-size: 0.8rem;">1</span>
-                        <h6 class="fw-bold text-dark mb-0 text-uppercase" style="font-size: 0.82rem; letter-spacing: 0.05em;">Data Customer</h6>
-                    </div>
-
-                    <div class="row g-3">
-                        {{-- Nama Customer --}}
-                        <div class="col-md-6">
-                            <label for="nama_customer" class="form-label small fw-semibold text-dark">
-                                Nama Customer <span class="text-danger">*</span>
-                            </label>
-                            <input type="text"
-                                   id="nama_customer"
-                                   name="nama_customer"
-                                   class="form-control @error('nama_customer') is-invalid @enderror"
-                                   value="{{ old('nama_customer', $nota->nama_customer) }}"
-                                   placeholder="Contoh: Irene Lemansyah"
-                                   required
-                                   maxlength="150">
-                            @error('nama_customer')
-                                <div class="invalid-feedback small">{{ $message }}</div>
-                            @enderror
+                @if($nota->isSparepart())
+                    {{-- ============================================== --}}
+                    {{-- EDIT FORM: KHUSUS PENJUALAN SPAREPART & SERVIS --}}
+                    {{-- ============================================== --}}
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 pb-2 mb-3 border-bottom">
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-circle d-flex align-items-center justify-content-center" style="width: 26px; height: 26px; font-size: 0.8rem;">1</span>
+                            <h6 class="fw-bold text-dark mb-0 text-uppercase" style="font-size: 0.82rem; letter-spacing: 0.05em;">Data Customer</h6>
                         </div>
 
-                        {{-- Nomor WhatsApp Customer --}}
-                        <div class="col-md-6">
-                            <label for="nomor_wa" class="form-label small fw-semibold text-dark">
-                                No HP / WhatsApp Customer <span class="text-danger">*</span>
-                            </label>
-                            <input type="tel"
-                                   id="nomor_wa"
-                                   name="nomor_wa"
-                                   class="form-control @error('nomor_wa') is-invalid @enderror"
-                                   value="{{ old('nomor_wa', $nota->nomor_wa) }}"
-                                   placeholder="Contoh: 085709683797"
-                                   required
-                                   maxlength="25">
-                            <small class="text-muted" style="font-size: 0.72rem;">Digunakan untuk mengirim pesan konfirmasi DO otomatis.</small>
-                            @error('nomor_wa')
-                                <div class="invalid-feedback small">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        {{-- Nama STNK / BPKB --}}
-                        <div class="col-12">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <label for="nama_stnk_bpkb" class="form-label small fw-semibold text-dark mb-0">
-                                    Nama STNK / BPKB <span class="text-danger">*</span>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="nama_customer" class="form-label small fw-semibold text-dark">
+                                    Nama Customer <span class="text-danger">*</span>
                                 </label>
-                                <div class="form-check form-check-inline m-0">
-                                    <input class="form-check-input" type="checkbox" id="checkSamakanStnk">
-                                    <label class="form-check-label small text-muted" for="checkSamakanStnk" style="font-size: 0.75rem;">
-                                        Samakan dengan Nama Customer
-                                    </label>
-                                </div>
-                            </div>
-                            <input type="text"
-                                   id="nama_stnk_bpkb"
-                                   name="nama_stnk_bpkb"
-                                   class="form-control @error('nama_stnk_bpkb') is-invalid @enderror"
-                                   value="{{ old('nama_stnk_bpkb', $nota->nama_stnk_bpkb ?: $nota->nama_customer) }}"
-                                   placeholder="Nama yang tercetak pada berkas STNK / BPKB"
-                                   maxlength="150">
-                            @error('nama_stnk_bpkb')
-                                <div class="invalid-feedback small">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-                </div>
-
-                {{-- SECTION 2: DATA UNIT KENDARAAN --}}
-                <div class="mb-4">
-                    <div class="d-flex align-items-center gap-2 pb-2 mb-3 border-bottom">
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-circle d-flex align-items-center justify-content-center" style="width: 26px; height: 26px; font-size: 0.8rem;">2</span>
-                        <h6 class="fw-bold text-dark mb-0 text-uppercase" style="font-size: 0.82rem; letter-spacing: 0.05em;">Spesifikasi Unit Mobil</h6>
-                    </div>
-
-                    <div class="row g-3">
-                        {{-- Type Unit --}}
-                        <div class="col-md-6">
-                            <label for="type_unit" class="form-label small fw-semibold text-dark">
-                                Type Unit <span class="text-danger">*</span>
-                            </label>
-                            <input type="text"
-                                   id="type_unit"
-                                   name="type_unit"
-                                   list="listTypeUnit"
-                                   class="form-control @error('type_unit') is-invalid @enderror"
-                                   value="{{ old('type_unit', $nota->type_unit ?: $nota->nama_barang) }}"
-                                   placeholder="Pilih atau ketik, cth: Granmax PU 1.3 STD"
-                                   required>
-                            <datalist id="listTypeUnit">
-                                <option value="Granmax PU 1.3 STD">
-                                <option value="Granmax PU 1.5 STD">
-                                <option value="Granmax PU 1.5 AC PS">
-                                <option value="Granmax Minibus 1.3 D">
-                                <option value="Granmax Blind Van 1.3">
-                                <option value="Sigra M 1.0 MT MC">
-                                <option value="Sigra D 1.0 MT">
-                                <option value="Sigra X 1.2 MT">
-                                <option value="Sigra X 1.2 AT">
-                                <option value="Sigra R 1.2 MT">
-                                <option value="Sigra R 1.2 AT">
-                                <option value="All New Ayla 1.0 M MT">
-                                <option value="All New Ayla 1.0 X CVT">
-                                <option value="All New Ayla 1.2 R CVT">
-                                <option value="Terios X MT">
-                                <option value="Terios X AT">
-                                <option value="Terios R MT">
-                                <option value="Terios R AT">
-                                <option value="Terios Custom">
-                                <option value="Rocky 1.2 M MT">
-                                <option value="Rocky 1.2 X CVT">
-                                <option value="Rocky 1.0 R TC CVT">
-                                <option value="All New Xenia 1.3 M MT">
-                                <option value="All New Xenia 1.3 X MT">
-                                <option value="All New Xenia 1.3 R CVT">
-                                <option value="All New Xenia 1.5 R CVT">
-                                <option value="Luxio 1.5 D">
-                                <option value="Luxio 1.5 X">
-                            </datalist>
-                            @error('type_unit')
-                                <div class="invalid-feedback small">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        {{-- Warna --}}
-                        <div class="col-md-3">
-                            <label for="warna" class="form-label small fw-semibold text-dark">
-                                Warna <span class="text-danger">*</span>
-                            </label>
-                            <input type="text"
-                                   id="warna"
-                                   name="warna"
-                                   list="listWarna"
-                                   class="form-control @error('warna') is-invalid @enderror"
-                                   value="{{ old('warna', $nota->warna) }}"
-                                   placeholder="Cth: Hitam, Grey, Putih"
-                                   required>
-                            <datalist id="listWarna">
-                                <option value="Hitam">
-                                <option value="Grey">
-                                <option value="Putih">
-                                <option value="Silver">
-                                <option value="Merah">
-                                <option value="Orange">
-                                <option value="Bronze">
-                            </datalist>
-                            @error('warna')
-                                <div class="invalid-feedback small">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        {{-- Tahun Mobil --}}
-                        <div class="col-md-3">
-                            <label for="tahun_mobil" class="form-label small fw-semibold text-dark">
-                                Tahun Mobil <span class="text-danger">*</span>
-                            </label>
-                            <select id="tahun_mobil" name="tahun_mobil" class="form-select @error('tahun_mobil') is-invalid @enderror" required>
-                                @php $currentYear = (int) date('Y'); @endphp
-                                @for($y = $currentYear + 1; $y >= $currentYear - 3; $y--)
-                                    <option value="{{ $y }}" {{ old('tahun_mobil', $nota->tahun_mobil ?: $currentYear) == $y ? 'selected' : '' }}>
-                                        {{ $y }}
-                                    </option>
-                                @endfor
-                            </select>
-                            @error('tahun_mobil')
-                                <div class="invalid-feedback small">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-                </div>
-
-                {{-- SECTION 3: SKEMA PEMBELIAN & FINANSIAL --}}
-                <div class="mb-4">
-                    <div class="d-flex align-items-center gap-2 pb-2 mb-3 border-bottom">
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-circle d-flex align-items-center justify-content-center" style="width: 26px; height: 26px; font-size: 0.8rem;">3</span>
-                        <h6 class="fw-bold text-dark mb-0 text-uppercase" style="font-size: 0.82rem; letter-spacing: 0.05em;">Skema Pembelian & Pembayaran</h6>
-                    </div>
-
-                    <div class="row g-3">
-                        {{-- Cara Pembelian (Credit / Cash) --}}
-                        <div class="col-md-4">
-                            <label class="form-label small fw-semibold text-dark d-block">
-                                Cara Pembelian <span class="text-danger">*</span>
-                            </label>
-                            <div class="d-flex gap-3 pt-1">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="cara_pembelian" id="caraCredit" value="Credit" {{ old('cara_pembelian', $nota->cara_pembelian ?: 'Credit') === 'Credit' ? 'checked' : '' }} onchange="toggleLeasingFields()">
-                                    <label class="form-check-label fw-semibold text-dark small" for="caraCredit">
-                                        Credit
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="cara_pembelian" id="caraCash" value="Cash" {{ old('cara_pembelian', $nota->cara_pembelian) === 'Cash' ? 'checked' : '' }} onchange="toggleLeasingFields()">
-                                    <label class="form-check-label fw-semibold text-dark small" for="caraCash">
-                                        Cash (Tunai)
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Nama Leasing --}}
-                        <div class="col-md-4" id="colLeasing">
-                            <label for="nama_leasing" class="form-label small fw-semibold text-dark">
-                                Nama Leasing <span class="text-danger" id="reqLeasing">*</span>
-                            </label>
-                            <input type="text"
-                                   id="nama_leasing"
-                                   name="nama_leasing"
-                                   list="listLeasing"
-                                   class="form-control @error('nama_leasing') is-invalid @enderror"
-                                   value="{{ old('nama_leasing', $nota->nama_leasing) }}"
-                                   placeholder="Pilih atau ketik, cth: TAFS">
-                            <datalist id="listLeasing">
-                                <option value="TAFS">
-                                <option value="ACC">
-                                <option value="Adira Finance">
-                                <option value="BCA Finance">
-                                <option value="Mandiri Utama Finance (MUF)">
-                                <option value="OTO Multiartha">
-                                <option value="Maybank Finance">
-                                <option value="CIMB Niaga Auto Finance">
-                            </datalist>
-                            @error('nama_leasing')
-                                <div class="invalid-feedback small">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        {{-- Tenor --}}
-                        <div class="col-md-4" id="colTenor">
-                            <label for="tenor" class="form-label small fw-semibold text-dark">
-                                Tenor <span class="text-danger" id="reqTenor">*</span>
-                            </label>
-                            <select id="tenor" name="tenor" class="form-select @error('tenor') is-invalid @enderror">
-                                <option value="">-- Pilih Tenor --</option>
-                                <option value="1 Tahun" {{ old('tenor', $nota->tenor) === '1 Tahun' ? 'selected' : '' }}>1 Tahun (12 Bulan)</option>
-                                <option value="2 Tahun" {{ old('tenor', $nota->tenor) === '2 Tahun' ? 'selected' : '' }}>2 Tahun (24 Bulan)</option>
-                                <option value="3 Tahun" {{ old('tenor', $nota->tenor) === '3 Tahun' ? 'selected' : '' }}>3 Tahun (36 Bulan)</option>
-                                <option value="4 Tahun" {{ old('tenor', $nota->tenor) === '4 Tahun' ? 'selected' : '' }}>4 Tahun (48 Bulan)</option>
-                                <option value="5 Tahun" {{ old('tenor', $nota->tenor ?: '5 Tahun') === '5 Tahun' ? 'selected' : '' }}>5 Tahun (60 Bulan)</option>
-                                <option value="6 Tahun" {{ old('tenor', $nota->tenor) === '6 Tahun' ? 'selected' : '' }}>6 Tahun (72 Bulan)</option>
-                            </select>
-                            @error('tenor')
-                                <div class="invalid-feedback small">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        {{-- Total Bayar (Nominal Pembayaran) --}}
-                        <div class="col-md-4">
-                            <label for="display_total_bayar" class="form-label small fw-semibold text-dark">
-                                Total Bayar (Rp) <span class="text-danger">*</span>
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light text-dark fw-bold small">Rp</span>
                                 <input type="text"
-                                       id="display_total_bayar"
-                                       class="form-control fw-bold text-success fs-6"
-                                       placeholder="Cth: 81.500.000"
+                                       id="nama_customer"
+                                       name="nama_customer"
+                                       class="form-control @error('nama_customer') is-invalid @enderror"
+                                       value="{{ old('nama_customer', $nota->nama_customer) }}"
+                                       required
+                                       maxlength="150">
+                                @error('nama_customer')
+                                    <div class="invalid-feedback small">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="nomor_wa" class="form-label small fw-semibold text-dark">
+                                    No HP / WhatsApp Customer <span class="text-danger">*</span>
+                                </label>
+                                <input type="tel"
+                                       id="nomor_wa"
+                                       name="nomor_wa"
+                                       class="form-control @error('nomor_wa') is-invalid @enderror"
+                                       value="{{ old('nomor_wa', $nota->nomor_wa) }}"
+                                       required
+                                       maxlength="25">
+                                @error('nomor_wa')
+                                    <div class="invalid-feedback small">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- SECTION 2: RINCIAN SPAREPART --}}
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center justify-content-between pb-2 mb-3 border-bottom">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-circle d-flex align-items-center justify-content-center" style="width: 26px; height: 26px; font-size: 0.8rem;">2</span>
+                                <h6 class="fw-bold text-dark mb-0 text-uppercase" style="font-size: 0.82rem; letter-spacing: 0.05em;">Rincian Barang / Sparepart Dibeli</h6>
+                            </div>
+                            <button type="button" class="btn btn-outline-success btn-sm py-1.5 px-3 d-inline-flex align-items-center gap-1.5" id="btnTambahSparepart" style="font-size: 0.78rem;">
+                                <i class="bi bi-plus-circle"></i>
+                                <span>Tambah Item Sparepart</span>
+                            </button>
+                        </div>
+
+                        <div class="card bg-light border p-2.5 p-md-3 rounded-3 shadow-none mb-3">
+                            <div id="sparepartItemsContainer" class="d-flex flex-column gap-2">
+                                @foreach($nota->items_list as $index => $item)
+                                    <div class="sparepart-row p-2.5 bg-white border rounded-3 shadow-sm">
+                                        <div class="row g-2 align-items-center">
+                                            <div class="col-12 col-md-5">
+                                                <label class="form-label small text-muted mb-1" style="font-size: 0.72rem;">Nama Part / Barang <span class="text-danger">*</span></label>
+                                                <input type="text" name="items[{{ $index }}][nama]" class="form-control form-control-sm sparepart-nama" value="{{ $item['nama'] ?? '' }}" required>
+                                            </div>
+                                            <div class="col-4 col-md-2">
+                                                <label class="form-label small text-muted mb-1" style="font-size: 0.72rem;">Qty <span class="text-danger">*</span></label>
+                                                <input type="number" name="items[{{ $index }}][qty]" class="form-control form-control-sm sparepart-qty text-center" value="{{ $item['qty'] ?? 1 }}" min="1" step="1" required>
+                                            </div>
+                                            <div class="col-8 col-md-3">
+                                                <label class="form-label small text-muted mb-1" style="font-size: 0.72rem;">Harga Satuan (Rp) <span class="text-danger">*</span></label>
+                                                <input type="number" name="items[{{ $index }}][harga]" class="form-control form-control-sm sparepart-harga text-end" value="{{ $item['harga'] ?? 0 }}" min="0" step="100" required>
+                                            </div>
+                                            <div class="col-10 col-md-2 text-end d-none d-md-block">
+                                                <label class="form-label small text-muted mb-1" style="font-size: 0.72rem;">Subtotal</label>
+                                                <div class="fw-bold text-dark small sparepart-subtotal-text" style="font-size: 0.85rem; padding-top: 5px;">Rp {{ number_format((int)($item['subtotal'] ?? 0), 0, ',', '.') }}</div>
+                                            </div>
+                                            <div class="col-2 col-md-auto text-end pt-md-4">
+                                                <button type="button" class="btn btn-outline-danger btn-sm py-1 px-2 btn-hapus-sparepart" title="Hapus baris" {{ count($nota->items_list) <= 1 ? 'disabled' : '' }} style="font-size: 0.75rem;">
+                                                    <i class="bi bi-trash3"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- Ringkasan Perhitungan Sparepart --}}
+                        <div class="p-3 bg-white border rounded-3 shadow-sm mb-3">
+                            <div class="row g-3 align-items-center">
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-dark mb-1">Subtotal Harga Barang</label>
+                                    <div class="fs-6 fw-bold text-dark" id="displaySubtotalSparepart">Rp 0</div>
+                                    <small class="text-muted" id="countSparepartItems">{{ count($nota->items_list) }} item barang</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="display_diskon_sparepart" class="form-label small fw-semibold text-dark mb-1">Diskon / Potongan (Rp)</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-light text-dark fw-bold">Rp</span>
+                                        <input type="text" id="display_diskon_sparepart" class="form-control fw-semibold" value="{{ number_format($nota->total_diskon ?: 0, 0, ',', '.') }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-dark mb-1">Total Kas Masuk / Bayar</label>
+                                    <div class="fs-5 fw-bold text-success" id="displayTotalSparepart">Rp {{ $nota->formatted_total_bayar }}</div>
+                                    <small class="text-muted">Total akhir yang dibayarkan</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="nominal_pembayaran" id="nominal_pembayaran" value="{{ $nota->nominal_pembayaran }}">
+                        <input type="hidden" name="total_diskon" id="total_diskon" value="{{ $nota->total_diskon }}">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="tanggal_upload" class="form-label small fw-semibold text-dark">
+                            Tanggal Transaksi <span class="text-danger">*</span>
+                        </label>
+                        <input type="date"
+                               id="tanggal_upload"
+                               name="tanggal_upload"
+                               class="form-control @error('tanggal_upload') is-invalid @enderror"
+                               value="{{ old('tanggal_upload', $nota->tanggal_upload?->format('Y-m-d') ?: now()->format('Y-m-d')) }}"
+                               required>
+                        @error('tanggal_upload')
+                            <div class="invalid-feedback small">{{ $message }}</div>
+                        @enderror
+                    </div>
+                @else
+                    {{-- ============================================== --}}
+                    {{-- EDIT FORM: KHUSUS PENJUALAN UNIT MOBIL (DO)     --}}
+                    {{-- ============================================== --}}
+                    {{-- SECTION 1: DATA PELANGGAN --}}
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 pb-2 mb-3 border-bottom">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-circle d-flex align-items-center justify-content-center" style="width: 26px; height: 26px; font-size: 0.8rem;">1</span>
+                            <h6 class="fw-bold text-dark mb-0 text-uppercase" style="font-size: 0.82rem; letter-spacing: 0.05em;">Data Customer</h6>
+                        </div>
+
+                        <div class="row g-3">
+                            {{-- Nama Customer --}}
+                            <div class="col-md-6">
+                                <label for="nama_customer" class="form-label small fw-semibold text-dark">
+                                    Nama Customer <span class="text-danger">*</span>
+                                </label>
+                                <input type="text"
+                                       id="nama_customer"
+                                       name="nama_customer"
+                                       class="form-control @error('nama_customer') is-invalid @enderror"
+                                       value="{{ old('nama_customer', $nota->nama_customer) }}"
+                                       placeholder="Contoh: Irene Lemansyah"
+                                       required
+                                       maxlength="150">
+                                @error('nama_customer')
+                                    <div class="invalid-feedback small">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            {{-- Nomor WhatsApp Customer --}}
+                            <div class="col-md-6">
+                                <label for="nomor_wa" class="form-label small fw-semibold text-dark">
+                                    No HP / WhatsApp Customer <span class="text-danger">*</span>
+                                </label>
+                                <input type="tel"
+                                       id="nomor_wa"
+                                       name="nomor_wa"
+                                       class="form-control @error('nomor_wa') is-invalid @enderror"
+                                       value="{{ old('nomor_wa', $nota->nomor_wa) }}"
+                                       placeholder="Contoh: 085709683797"
+                                       required
+                                       maxlength="25">
+                                <small class="text-muted" style="font-size: 0.72rem;">Digunakan untuk mengirim pesan konfirmasi DO otomatis.</small>
+                                @error('nomor_wa')
+                                    <div class="invalid-feedback small">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            {{-- Nama STNK / BPKB --}}
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="nama_stnk_bpkb" class="form-label small fw-semibold text-dark mb-0">
+                                        Nama STNK / BPKB <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="form-check form-check-inline m-0">
+                                        <input class="form-check-input" type="checkbox" id="checkSamakanStnk">
+                                        <label class="form-check-label small text-muted" for="checkSamakanStnk" style="font-size: 0.75rem;">
+                                            Samakan dengan Nama Customer
+                                        </label>
+                                    </div>
+                                </div>
+                                <input type="text"
+                                       id="nama_stnk_bpkb"
+                                       name="nama_stnk_bpkb"
+                                       class="form-control @error('nama_stnk_bpkb') is-invalid @enderror"
+                                       value="{{ old('nama_stnk_bpkb', $nota->nama_stnk_bpkb ?: $nota->nama_customer) }}"
+                                       placeholder="Nama yang tercetak pada berkas STNK / BPKB"
+                                       maxlength="150">
+                                @error('nama_stnk_bpkb')
+                                    <div class="invalid-feedback small">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- SECTION 2: DATA UNIT KENDARAAN --}}
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 pb-2 mb-3 border-bottom">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-circle d-flex align-items-center justify-content-center" style="width: 26px; height: 26px; font-size: 0.8rem;">2</span>
+                            <h6 class="fw-bold text-dark mb-0 text-uppercase" style="font-size: 0.82rem; letter-spacing: 0.05em;">Spesifikasi Unit Mobil</h6>
+                        </div>
+
+                        <div class="row g-3">
+                            {{-- Type Unit --}}
+                            <div class="col-md-6">
+                                <label for="type_unit" class="form-label small fw-semibold text-dark">
+                                    Type Unit <span class="text-danger">*</span>
+                                </label>
+                                <input type="text"
+                                       id="type_unit"
+                                       name="type_unit"
+                                       list="listTypeUnit"
+                                       class="form-control @error('type_unit') is-invalid @enderror"
+                                       value="{{ old('type_unit', $nota->type_unit ?: $nota->nama_barang) }}"
+                                       placeholder="Pilih atau ketik, cth: Granmax PU 1.3 STD"
                                        required>
+                                <datalist id="listTypeUnit">
+                                    <option value="Granmax PU 1.3 STD">
+                                    <option value="Granmax PU 1.5 STD">
+                                    <option value="Granmax PU 1.5 AC PS">
+                                    <option value="Granmax Minibus 1.3 D">
+                                    <option value="Granmax Blind Van 1.3">
+                                    <option value="Sigra M 1.0 MT MC">
+                                    <option value="Sigra D 1.0 MT">
+                                    <option value="Sigra X 1.2 MT">
+                                    <option value="Sigra X 1.2 AT">
+                                    <option value="Sigra R 1.2 MT">
+                                    <option value="Sigra R 1.2 AT">
+                                    <option value="All New Ayla 1.0 M MT">
+                                    <option value="All New Ayla 1.0 X CVT">
+                                    <option value="All New Ayla 1.2 R CVT">
+                                    <option value="Terios X MT">
+                                    <option value="Terios X AT">
+                                    <option value="Terios R MT">
+                                    <option value="Terios R AT">
+                                    <option value="Terios Custom">
+                                    <option value="Rocky 1.2 M MT">
+                                    <option value="Rocky 1.2 X CVT">
+                                    <option value="Rocky 1.0 R TC CVT">
+                                    <option value="All New Xenia 1.3 M MT">
+                                    <option value="All New Xenia 1.3 X MT">
+                                    <option value="All New Xenia 1.3 R CVT">
+                                    <option value="All New Xenia 1.5 R CVT">
+                                    <option value="Luxio 1.5 D">
+                                    <option value="Luxio 1.5 X">
+                                </datalist>
+                                @error('type_unit')
+                                    <div class="invalid-feedback small">{{ $message }}</div>
+                                @enderror
                             </div>
-                            <input type="hidden" name="nominal_pembayaran" id="nominal_pembayaran" value="{{ old('nominal_pembayaran', $nota->nominal_pembayaran ?: 0) }}">
-                            <small class="text-muted" style="font-size: 0.72rem;">Uang muka (DP) atau pelunasan total.</small>
-                            @error('nominal_pembayaran')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
 
-                        {{-- Total Diskon --}}
-                        <div class="col-md-4">
-                            <label for="display_total_diskon" class="form-label small fw-semibold text-dark">
-                                Total Diskon (Rp)
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light text-dark fw-bold small">Rp</span>
+                            {{-- Warna --}}
+                            <div class="col-md-3">
+                                <label for="warna" class="form-label small fw-semibold text-dark">
+                                    Warna <span class="text-danger">*</span>
+                                </label>
                                 <input type="text"
-                                       id="display_total_diskon"
-                                       class="form-control fw-semibold"
-                                       placeholder="Cth: 42.000.000">
+                                       id="warna"
+                                       name="warna"
+                                       list="listWarna"
+                                       class="form-control @error('warna') is-invalid @enderror"
+                                       value="{{ old('warna', $nota->warna) }}"
+                                       placeholder="Cth: Hitam, Grey, Putih"
+                                       required>
+                                <datalist id="listWarna">
+                                    <option value="Hitam">
+                                    <option value="Grey">
+                                    <option value="Putih">
+                                    <option value="Silver">
+                                    <option value="Merah">
+                                    <option value="Orange">
+                                    <option value="Bronze">
+                                </datalist>
+                                @error('warna')
+                                    <div class="invalid-feedback small">{{ $message }}</div>
+                                @enderror
                             </div>
-                            <input type="hidden" name="total_diskon" id="total_diskon" value="{{ old('total_diskon', $nota->total_diskon ?: 0) }}">
-                            <small class="text-muted" style="font-size: 0.72rem;">Potongan diskon / promo unit.</small>
-                            @error('total_diskon')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
 
-                        {{-- Tanggal Transaksi --}}
-                        <div class="col-md-4">
-                            <label for="tanggal_upload" class="form-label small fw-semibold text-dark">
-                                Tanggal Transaksi <span class="text-danger">*</span>
-                            </label>
-                            <input type="date"
-                                   id="tanggal_upload"
-                                   name="tanggal_upload"
-                                   class="form-control @error('tanggal_upload') is-invalid @enderror"
-                                   value="{{ old('tanggal_upload', $nota->tanggal_upload?->format('Y-m-d') ?: now()->format('Y-m-d')) }}"
-                                   required>
-                            @error('tanggal_upload')
-                                <div class="invalid-feedback small">{{ $message }}</div>
-                            @enderror
+                            {{-- Tahun Mobil --}}
+                            <div class="col-md-3">
+                                <label for="tahun_mobil" class="form-label small fw-semibold text-dark">
+                                    Tahun Mobil <span class="text-danger">*</span>
+                                </label>
+                                <select id="tahun_mobil" name="tahun_mobil" class="form-select @error('tahun_mobil') is-invalid @enderror" required>
+                                    @php $currentYear = (int) date('Y'); @endphp
+                                    @for($y = $currentYear + 1; $y >= $currentYear - 3; $y--)
+                                        <option value="{{ $y }}" {{ old('tahun_mobil', $nota->tahun_mobil ?: $currentYear) == $y ? 'selected' : '' }}>
+                                            {{ $y }}
+                                        </option>
+                                    @endfor
+                                </select>
+                                @error('tahun_mobil')
+                                    <div class="invalid-feedback small">{{ $message }}</div>
+                                @enderror
+                            </div>
                         </div>
                     </div>
-                </div>
+
+                    {{-- SECTION 3: SKEMA PEMBELIAN & FINANSIAL --}}
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 pb-2 mb-3 border-bottom">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-circle d-flex align-items-center justify-content-center" style="width: 26px; height: 26px; font-size: 0.8rem;">3</span>
+                            <h6 class="fw-bold text-dark mb-0 text-uppercase" style="font-size: 0.82rem; letter-spacing: 0.05em;">Skema Pembelian & Pembayaran</h6>
+                        </div>
+
+                        <div class="row g-3">
+                            {{-- Cara Pembelian (Credit / Cash) --}}
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold text-dark d-block">
+                                    Cara Pembelian <span class="text-danger">*</span>
+                                </label>
+                                <div class="d-flex gap-3 pt-1">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="cara_pembelian" id="caraCredit" value="Credit" {{ old('cara_pembelian', $nota->cara_pembelian ?: 'Credit') === 'Credit' ? 'checked' : '' }} onchange="toggleLeasingFields()">
+                                        <label class="form-check-label fw-semibold text-dark small" for="caraCredit">
+                                            Credit
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="cara_pembelian" id="caraCash" value="Cash" {{ old('cara_pembelian', $nota->cara_pembelian) === 'Cash' ? 'checked' : '' }} onchange="toggleLeasingFields()">
+                                        <label class="form-check-label fw-semibold text-dark small" for="caraCash">
+                                            Cash (Tunai)
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Nama Leasing --}}
+                            <div class="col-md-4" id="colLeasing">
+                                <label for="nama_leasing" class="form-label small fw-semibold text-dark">
+                                    Nama Leasing <span class="text-danger" id="reqLeasing">*</span>
+                                </label>
+                                <input type="text"
+                                       id="nama_leasing"
+                                       name="nama_leasing"
+                                       list="listLeasing"
+                                       class="form-control @error('nama_leasing') is-invalid @enderror"
+                                       value="{{ old('nama_leasing', $nota->nama_leasing) }}"
+                                       placeholder="Pilih atau ketik, cth: TAFS">
+                                <datalist id="listLeasing">
+                                    <option value="TAFS">
+                                    <option value="ACC">
+                                    <option value="Adira Finance">
+                                    <option value="BCA Finance">
+                                    <option value="Mandiri Utama Finance (MUF)">
+                                    <option value="OTO Multiartha">
+                                    <option value="Maybank Finance">
+                                    <option value="CIMB Niaga Auto Finance">
+                                </datalist>
+                                @error('nama_leasing')
+                                    <div class="invalid-feedback small">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            {{-- Tenor --}}
+                            <div class="col-md-4" id="colTenor">
+                                <label for="tenor" class="form-label small fw-semibold text-dark">
+                                    Tenor <span class="text-danger" id="reqTenor">*</span>
+                                </label>
+                                <select id="tenor" name="tenor" class="form-select @error('tenor') is-invalid @enderror">
+                                    <option value="">-- Pilih Tenor --</option>
+                                    <option value="1 Tahun" {{ old('tenor', $nota->tenor) === '1 Tahun' ? 'selected' : '' }}>1 Tahun (12 Bulan)</option>
+                                    <option value="2 Tahun" {{ old('tenor', $nota->tenor) === '2 Tahun' ? 'selected' : '' }}>2 Tahun (24 Bulan)</option>
+                                    <option value="3 Tahun" {{ old('tenor', $nota->tenor) === '3 Tahun' ? 'selected' : '' }}>3 Tahun (36 Bulan)</option>
+                                    <option value="4 Tahun" {{ old('tenor', $nota->tenor) === '4 Tahun' ? 'selected' : '' }}>4 Tahun (48 Bulan)</option>
+                                    <option value="5 Tahun" {{ old('tenor', $nota->tenor ?: '5 Tahun') === '5 Tahun' ? 'selected' : '' }}>5 Tahun (60 Bulan)</option>
+                                    <option value="6 Tahun" {{ old('tenor', $nota->tenor) === '6 Tahun' ? 'selected' : '' }}>6 Tahun (72 Bulan)</option>
+                                </select>
+                                @error('tenor')
+                                    <div class="invalid-feedback small">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            {{-- Total Bayar (Nominal Pembayaran) --}}
+                            <div class="col-md-4">
+                                <label for="display_total_bayar" class="form-label small fw-semibold text-dark">
+                                    Total Bayar (Rp) <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-dark fw-bold small">Rp</span>
+                                    <input type="text"
+                                           id="display_total_bayar"
+                                           class="form-control fw-bold text-success fs-6"
+                                           placeholder="Cth: 81.500.000"
+                                           required>
+                                </div>
+                                <input type="hidden" name="nominal_pembayaran" id="nominal_pembayaran" value="{{ old('nominal_pembayaran', $nota->nominal_pembayaran ?: 0) }}">
+                                <small class="text-muted" style="font-size: 0.72rem;">Uang muka (DP) atau pelunasan total.</small>
+                                @error('nominal_pembayaran')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            {{-- Total Diskon --}}
+                            <div class="col-md-4">
+                                <label for="display_total_diskon" class="form-label small fw-semibold text-dark">
+                                    Total Diskon (Rp)
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-dark fw-bold small">Rp</span>
+                                    <input type="text"
+                                           id="display_total_diskon"
+                                           class="form-control fw-semibold"
+                                           placeholder="Cth: 42.000.000">
+                                </div>
+                                <input type="hidden" name="total_diskon" id="total_diskon" value="{{ old('total_diskon', $nota->total_diskon ?: 0) }}">
+                                <small class="text-muted" style="font-size: 0.72rem;">Potongan diskon / promo unit.</small>
+                                @error('total_diskon')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            {{-- Tanggal Transaksi --}}
+                            <div class="col-md-4">
+                                <label for="tanggal_upload" class="form-label small fw-semibold text-dark">
+                                    Tanggal Transaksi <span class="text-danger">*</span>
+                                </label>
+                                <input type="date"
+                                       id="tanggal_upload"
+                                       name="tanggal_upload"
+                                       class="form-control @error('tanggal_upload') is-invalid @enderror"
+                                       value="{{ old('tanggal_upload', $nota->tanggal_upload?->format('Y-m-d') ?: now()->format('Y-m-d')) }}"
+                                       required>
+                                @error('tanggal_upload')
+                                    <div class="invalid-feedback small">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+                @endif
 
                 {{-- SECTION 4: FOTO BUKTI TRANSFER / STRUK --}}
                 <div class="mb-4">
@@ -451,7 +589,9 @@
 
     // Toggle Leasing & Tenor jika Cash vs Credit
     function toggleLeasingFields() {
-        const isCredit = document.getElementById('caraCredit').checked;
+        const creditEl = document.getElementById('caraCredit');
+        if (!creditEl) return;
+        const isCredit = creditEl.checked;
         const colLeasing = document.getElementById('colLeasing');
         const colTenor = document.getElementById('colTenor');
         const inputLeasing = document.getElementById('nama_leasing');
@@ -477,6 +617,134 @@
             reqLeasing.style.display = 'none';
             reqTenor.style.display = 'none';
         }
+    }
+
+    // Logic Dinamis Sparepart Items jika mode sparepart
+    const sparepartContainer = document.getElementById('sparepartItemsContainer');
+    const btnTambahSparepart = document.getElementById('btnTambahSparepart');
+    const displaySubtotalSparepart = document.getElementById('displaySubtotalSparepart');
+    const displayDiskonSparepart = document.getElementById('display_diskon_sparepart');
+    const displayTotalSparepart = document.getElementById('displayTotalSparepart');
+    const countSparepartItems = document.getElementById('countSparepartItems');
+    let sparepartIndex = {{ count($nota->items_list) }};
+
+    function formatRupiah(val) {
+        return 'Rp ' + (new Intl.NumberFormat('id-ID').format(val));
+    }
+
+    function hitungTotalSparepart() {
+        if (!sparepartContainer) return;
+        let subtotal = 0;
+        const rows = sparepartContainer.querySelectorAll('.sparepart-row');
+
+        rows.forEach(row => {
+            const qtyInput = row.querySelector('.sparepart-qty');
+            const hargaInput = row.querySelector('.sparepart-harga');
+            const subtotalText = row.querySelector('.sparepart-subtotal-text');
+
+            const qty = parseFloat(qtyInput ? qtyInput.value : 1) || 0;
+            const harga = parseFloat(hargaInput ? hargaInput.value : 0) || 0;
+            const rowTotal = qty * harga;
+            subtotal += rowTotal;
+
+            if (subtotalText) {
+                subtotalText.textContent = formatRupiah(rowTotal);
+            }
+        });
+
+        let diskonVal = 0;
+        if (displayDiskonSparepart && displayDiskonSparepart.value) {
+            diskonVal = parseInt(displayDiskonSparepart.value.replace(/\D/g, ''), 10) || 0;
+        }
+
+        const totalBayar = Math.max(0, subtotal - diskonVal);
+
+        if (displaySubtotalSparepart) displaySubtotalSparepart.textContent = formatRupiah(subtotal);
+        if (displayTotalSparepart) displayTotalSparepart.textContent = formatRupiah(totalBayar);
+        if (countSparepartItems) countSparepartItems.textContent = rows.length + ' item barang';
+
+        const hiddenNominal = document.getElementById('nominal_pembayaran');
+        const hiddenDiskon = document.getElementById('total_diskon');
+        if (hiddenNominal) hiddenNominal.value = totalBayar;
+        if (hiddenDiskon) hiddenDiskon.value = diskonVal;
+
+        rows.forEach(row => {
+            const btnHapus = row.querySelector('.btn-hapus-sparepart');
+            if (btnHapus) {
+                btnHapus.disabled = (rows.length <= 1);
+            }
+        });
+    }
+
+    if (sparepartContainer) {
+        sparepartContainer.addEventListener('input', function (e) {
+            if (e.target.classList.contains('sparepart-qty') || e.target.classList.contains('sparepart-harga')) {
+                hitungTotalSparepart();
+            }
+        });
+
+        sparepartContainer.addEventListener('click', function (e) {
+            const btnHapus = e.target.closest('.btn-hapus-sparepart');
+            if (btnHapus && !btnHapus.disabled) {
+                const row = btnHapus.closest('.sparepart-row');
+                if (row && sparepartContainer.querySelectorAll('.sparepart-row').length > 1) {
+                    row.remove();
+                    hitungTotalSparepart();
+                }
+            }
+        });
+
+        hitungTotalSparepart();
+    }
+
+    if (btnTambahSparepart) {
+        btnTambahSparepart.addEventListener('click', function () {
+            const newRow = document.createElement('div');
+            newRow.className = 'sparepart-row p-2.5 bg-white border rounded-3 shadow-sm';
+            newRow.innerHTML = `
+                <div class="row g-2 align-items-center">
+                    <div class="col-12 col-md-5">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.72rem;">Nama Part / Barang <span class="text-danger">*</span></label>
+                        <input type="text" name="items[${sparepartIndex}][nama]" class="form-control form-control-sm sparepart-nama" placeholder="Cth: Oli DGO, Filter Oli, dll." required>
+                    </div>
+                    <div class="col-4 col-md-2">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.72rem;">Qty <span class="text-danger">*</span></label>
+                        <input type="number" name="items[${sparepartIndex}][qty]" class="form-control form-control-sm sparepart-qty text-center" value="1" min="1" step="1" required>
+                    </div>
+                    <div class="col-8 col-md-3">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.72rem;">Harga Satuan (Rp) <span class="text-danger">*</span></label>
+                        <input type="number" name="items[${sparepartIndex}][harga]" class="form-control form-control-sm sparepart-harga text-end" placeholder="0" min="0" step="100" required>
+                    </div>
+                    <div class="col-10 col-md-2 text-end d-none d-md-block">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.72rem;">Subtotal</label>
+                        <div class="fw-bold text-dark small sparepart-subtotal-text" style="font-size: 0.85rem; padding-top: 5px;">Rp 0</div>
+                    </div>
+                    <div class="col-2 col-md-auto text-end pt-md-4">
+                        <button type="button" class="btn btn-outline-danger btn-sm py-1 px-2 btn-hapus-sparepart" title="Hapus baris" style="font-size: 0.75rem;">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            sparepartContainer.appendChild(newRow);
+            sparepartIndex++;
+            hitungTotalSparepart();
+
+            const inputBaru = newRow.querySelector('.sparepart-nama');
+            if (inputBaru) inputBaru.focus();
+        });
+    }
+
+    if (displayDiskonSparepart) {
+        displayDiskonSparepart.addEventListener('input', function () {
+            let val = this.value.replace(/\D/g, '');
+            if (val === '') {
+                this.value = '';
+            } else {
+                this.value = new Intl.NumberFormat('id-ID').format(val);
+            }
+            hitungTotalSparepart();
+        });
     }
 
     // Pemformatan Angka Ribuan Rupiah Otomatis
