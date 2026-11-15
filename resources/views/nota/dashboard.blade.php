@@ -259,8 +259,10 @@
                     @include('nota.partials.modal-kirim-bos', ['nota' => $nota, 'bosses' => $bosses])
                 @empty
                     <tr>
-                        <td colspan="5" class="text-center py-4 text-muted small">
-                            Belum ada riwayat transaksi.
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox fs-2 text-muted d-block mb-2"></i>
+                            <div class="fw-medium text-dark">Belum ada riwayat transaksi</div>
+                            <small class="text-muted">Transaksi baru yang dicatat akan muncul di sini.</small>
                         </td>
                     </tr>
                 @endforelse
