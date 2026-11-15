@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+# Default Render PostgreSQL internal database URL
+DEFAULT_PG_URL="postgresql://notakontan_user:jTUopGtdowpunxnqmlv41rHuJZ711Ms1@dpg-dbslh2ei0phs73dg131g-a/notakontan"
+DATABASE_URL="${DATABASE_URL:-$DEFAULT_PG_URL}"
+
 # Deteksi konfigurasi database (PostgreSQL Render / MySQL / SQLite fallback)
 if [ -n "$DATABASE_URL" ]; then
     if [[ "$DATABASE_URL" == postgres* ]] || [[ "$DATABASE_URL" == pgsql* ]]; then
@@ -21,6 +25,21 @@ ACTIVE_APP_DEBUG="${APP_DEBUG:-false}"
 ACTIVE_APP_KEY="${APP_KEY:-base64:2e3O9WkHIlwy5QMotxJ/a4KxrYrs3loZHNJBX/8PtlU=}"
 ACTIVE_APP_URL="${APP_URL:-https://nota-kontan.onrender.com}"
 
+# Default PostgreSQL credentials jika belum disetel
+if [ "$ACTIVE_DB" = "pgsql" ]; then
+    DEFAULT_DB_HOST="dpg-dbslh2ei0phs73dg131g-a"
+    DEFAULT_DB_PORT="5432"
+    DEFAULT_DB_NAME="notakontan"
+    DEFAULT_DB_USER="notakontan_user"
+    DEFAULT_DB_PASS="jTUopGtdowpunxnqmlv41rHuJZ711Ms1"
+else
+    DEFAULT_DB_HOST="127.0.0.1"
+    DEFAULT_DB_PORT="3306"
+    DEFAULT_DB_NAME="laravel"
+    DEFAULT_DB_USER="root"
+    DEFAULT_DB_PASS=""
+fi
+
 echo "===> [1/6] Menyiapkan file .env (DB_CONNECTION=$ACTIVE_DB)..."
 
 cat > /var/www/html/.env << EOF
@@ -34,12 +53,12 @@ LOG_CHANNEL=stderr
 LOG_LEVEL=info
 
 DB_CONNECTION=${ACTIVE_DB}
-DATABASE_URL=${DATABASE_URL:-}
-DB_HOST=${DB_HOST:-127.0.0.1}
-DB_PORT=${DB_PORT:-5432}
-DB_DATABASE=${DB_DATABASE:-/var/www/html/database/database.sqlite}
-DB_USERNAME=${DB_USERNAME:-}
-DB_PASSWORD=${DB_PASSWORD:-}
+DATABASE_URL=${DATABASE_URL}
+DB_HOST=${DB_HOST:-$DEFAULT_DB_HOST}
+DB_PORT=${DB_PORT:-$DEFAULT_DB_PORT}
+DB_DATABASE=${DB_DATABASE:-$DEFAULT_DB_NAME}
+DB_USERNAME=${DB_USERNAME:-$DEFAULT_DB_USER}
+DB_PASSWORD=${DB_PASSWORD:-$DEFAULT_DB_PASS}
 
 SESSION_DRIVER=file
 SESSION_LIFETIME=120
