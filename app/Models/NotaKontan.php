@@ -144,6 +144,7 @@ class NotaKontan extends Model
 
         $totalBayar = $this->formatted_total_bayar;
         $totalDiskon = $this->formatted_total_diskon;
+        $pdfUrl = route('nota.pdf', $this->id);
 
         // Jika Transaksi Sparepart / Servis
         if ($this->isSparepart()) {
@@ -169,6 +170,8 @@ class NotaKontan extends Model
                 . "Total Bayar : Rp {$totalBayar}\n"
                 . "Status Pembayaran : Lunas (Cash / Transfer)\n"
                 . "Timestamp : {$timestamp}\n\n"
+                . "📄 Buka & Unduh Berkas Dokumen Nota PDF Resmi Anda:\n"
+                . "{$pdfUrl}\n\n"
                 . "Terima kasih telah mempercayakan perawatan kendaraan Anda di Astra Daihatsu.";
         }
         
@@ -192,7 +195,9 @@ class NotaKontan extends Model
             . "Nama Leasing : {$leasing}\n"
             . "Tenor : {$tenor}\n"
             . "Tahun Mobil : {$tahun}\n"
-            . "Timestamp : {$timestamp}";
+            . "Timestamp : {$timestamp}\n\n"
+            . "📄 Buka & Unduh Berkas Dokumen Konfirmasi DO / Nota PDF Resmi Anda:\n"
+            . "{$pdfUrl}";
     }
 
     /**
@@ -222,6 +227,7 @@ class NotaKontan extends Model
         $totalBayar = $this->formatted_total_bayar;
         $totalDiskon = $this->formatted_total_diskon;
         $namaPimpinan = $boss ? $boss->nama : 'Pimpinan';
+        $pdfUrl = route('nota.pdf', $this->id);
 
         // Jika Transaksi Sparepart / Servis
         if ($this->isSparepart()) {
@@ -247,6 +253,8 @@ class NotaKontan extends Model
                 . "Total Diskon : Rp {$totalDiskon}\n"
                 . "Total Kas Masuk : Rp {$totalBayar}\n"
                 . "Petugas Input : {$petugas}\n\n"
+                . "📄 Berkas Dokumen Nota PDF Digital:\n"
+                . "{$pdfUrl}\n\n"
                 . "Terimakasih atas perhatiannya.";
         }
 
@@ -257,8 +265,9 @@ class NotaKontan extends Model
         $leasing = ($cara === 'Cash') ? '-' : ($this->nama_leasing ?: '-');
         $tenor = ($cara === 'Cash') ? '-' : ($this->tenor ?: '-');
         $tahun = $this->tahun_mobil ?: '2026';
+        $sapaan = $boss ? $boss->nama : $customer;
 
-        return "Yth Bapak/Ibu. {$customer}\n\n"
+        return "Yth Bapak/Ibu. {$sapaan}\n\n"
             . "Kami dari ASTRA DAIHATSU Palembang Veteran\n"
             . "Bersama ini kami ingin melakukan konfirmasi data pembelian mobil Bapak/Ibu di Astra Daihatsu\n"
             . "Mohon Konfirmasinya.\n"
@@ -274,6 +283,8 @@ class NotaKontan extends Model
             . "Nama Leasing : {$leasing}\n"
             . "Tenor : {$tenor}\n"
             . "Tahun Mobil : {$tahun}\n\n"
+            . "📄 Berkas Dokumen Konfirmasi DO / Nota PDF Digital:\n"
+            . "{$pdfUrl}\n\n"
             . "Terimakasih atas perhatiannya.";
     }
 
