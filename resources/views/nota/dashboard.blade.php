@@ -236,7 +236,7 @@
                             @if($nota->isTerkirimCustomer())
                                 <div class="mt-0.5">
                                     <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-1.5" style="font-size: 0.65rem;">
-                                        <i class="bi bi-check2-all"></i> Terkirim ke Customer
+                                        <i class="bi bi-check2-all"></i> Terkirim ke Customer ({{ $nota->wa_customer_sent_at->format('d/m H:i') }})
                                     </span>
                                 </div>
                             @endif

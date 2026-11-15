@@ -197,9 +197,9 @@
             {{-- Action buttons bar --}}
             <div class="d-flex flex-wrap gap-2 pt-4 mt-3 border-top">
                 @if($nota->nomor_wa)
-                    <a href="{{ route('nota.share', $nota->id) }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-success btn-sm py-1.5 px-3">
+                    <button type="button" class="btn btn-outline-success btn-sm py-1.5 px-3" data-bs-toggle="modal" data-bs-target="#modalKirimCustomer{{ $nota->id }}">
                         <i class="bi bi-whatsapp me-1"></i> {{ $nota->isTerkirimCustomer() ? 'Kirim Ulang ke Customer' : 'Kirim Format Konfirmasi ke Customer' }}
-                    </a>
+                    </button>
                 @endif
 
                 <a href="{{ route('nota.edit', $nota->id) }}" class="btn btn-light btn-sm text-secondary border py-1.5 px-3">
@@ -252,9 +252,9 @@
                     </div>
                     <div class="d-flex align-items-center gap-1">
                         @if($nota->nomor_wa)
-                            <a href="{{ route('nota.share', $nota->id) }}" target="_blank" class="btn btn-outline-success btn-sm py-1 px-2.5" style="font-size: 0.75rem;">
+                            <button type="button" class="btn btn-outline-success btn-sm py-1 px-2.5" data-bs-toggle="modal" data-bs-target="#modalKirimCustomer{{ $nota->id }}" style="font-size: 0.75rem;">
                                 <i class="bi bi-whatsapp me-1"></i> {{ $nota->isTerkirimCustomer() ? 'Kirim Ulang' : 'Kirim' }}
-                            </a>
+                            </button>
                         @endif
                         <form action="{{ route('nota.mark-sent', $nota->id) }}" method="POST" class="d-inline">
                             @csrf
@@ -353,7 +353,8 @@
     </div>
 </div>
 
-{{-- Include Modal Kirim ke WhatsApp Bos --}}
+{{-- Include Modal Kirim ke WhatsApp Customer & Bos --}}
+@include('nota.partials.modal-kirim-customer', ['nota' => $nota])
 @include('nota.partials.modal-kirim-bos', ['nota' => $nota, 'bosses' => $bosses])
 
 @endsection

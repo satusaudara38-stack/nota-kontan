@@ -220,19 +220,23 @@
 
                             {{-- Status Kirim WA ke Customer --}}
                             <div class="mt-1" id="badgeCustomerContainer{{ $nota->id }}">
-                                @if($nota->isTerkirimCustomer())
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-1.5 d-inline-flex align-items-center gap-1"
-                                          title="Terkirim ke Customer: {{ $nota->wa_customer_sent_at->format('d/m/Y H:i') }} WIB ({{ $nota->wa_customer_sent_count }}x)"
-                                          style="font-size: 0.68rem; font-weight: 500;">
-                                        <i class="bi bi-check2-all text-success"></i> Terkirim ke Customer
-                                    </span>
-                                @else
-                                    <span class="badge bg-light text-muted border py-0.5 px-1.5 d-inline-flex align-items-center gap-1"
-                                          title="Belum dikirim via WhatsApp ke Customer"
-                                          style="font-size: 0.68rem; font-weight: 500;">
-                                        <i class="bi bi-dash-circle text-muted"></i> Belum ke Customer
-                                    </span>
-                                @endif
+                                <button type="button"
+                                        class="btn p-0 border-0 text-start"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalKirimCustomer{{ $nota->id }}"
+                                        title="Klik untuk membuka pengiriman WhatsApp atau atur status customer">
+                                    @if($nota->isTerkirimCustomer())
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-2 d-inline-flex align-items-center gap-1"
+                                              style="font-size: 0.68rem; font-weight: 500;">
+                                            <i class="bi bi-check2-all text-success"></i> Terkirim ke Customer ({{ $nota->wa_customer_sent_at->format('d/m H:i') }})
+                                        </span>
+                                    @else
+                                        <span class="badge bg-light text-muted border py-0.5 px-2 d-inline-flex align-items-center gap-1"
+                                              style="font-size: 0.68rem; font-weight: 500;">
+                                            <i class="bi bi-clock text-muted"></i> Belum ke Customer
+                                        </span>
+                                    @endif
+                                </button>
                             </div>
                         </td>
 
@@ -351,11 +355,10 @@
                                             {{-- WhatsApp Customer --}}
                                             @if($nota->nomor_wa)
                                                 <li>
-                                                    <a class="dropdown-item py-1.5 px-3 d-flex align-items-center justify-content-between gap-2"
-                                                       href="{{ route('nota.share', $nota->id) }}"
-                                                       target="_blank"
-                                                       rel="noopener noreferrer"
-                                                       onclick="if(typeof updateBadgeCustomerTerkirim==='function'){ updateBadgeCustomerTerkirim({{ $nota->id }}); }">
+                                                    <button type="button"
+                                                            class="dropdown-item py-1.5 px-3 d-flex align-items-center justify-content-between gap-2"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#modalKirimCustomer{{ $nota->id }}">
                                                         <span class="d-flex align-items-center gap-2">
                                                             <i class="bi bi-whatsapp text-success"></i>
                                                             <span>{{ $nota->isTerkirimCustomer() ? 'Kirim Ulang ke Customer' : 'Kirim WA ke Customer' }}</span>
@@ -363,7 +366,7 @@
                                                         @if($nota->isTerkirimCustomer())
                                                             <i class="bi bi-check2 text-success fw-bold"></i>
                                                         @endif
-                                                    </a>
+                                                    </button>
                                                 </li>
                                             @else
                                                 <li>
@@ -456,6 +459,9 @@
                         </td>
                     </tr>
 
+                    {{-- Modal Kirim ke Customer per Nota --}}
+                    @include('nota.partials.modal-kirim-customer', ['nota' => $nota])
+
                     {{-- Modal Kirim ke Bos per Nota --}}
                     @if(auth()->check() && !auth()->user()->isSales())
                         @include('nota.partials.modal-kirim-bos', ['nota' => $nota, 'bosses' => $bosses])
@@ -506,10 +512,15 @@ function updateBadgeCustomerTerkirim(notaId) {
     const el = document.getElementById('badgeCustomerContainer' + notaId);
     if (el) {
         el.innerHTML = `
-            <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-1.5 d-inline-flex align-items-center gap-1"
-                  style="font-size: 0.68rem; font-weight: 500;">
-                <i class="bi bi-check2-all text-success"></i> Terkirim ke Customer
-            </span>
+            <button type="button"
+                    class="btn p-0 border-0 text-start"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalKirimCustomer${notaId}">
+                <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-2 d-inline-flex align-items-center gap-1"
+                      style="font-size: 0.68rem; font-weight: 500;">
+                    <i class="bi bi-check2-all text-success"></i> Terkirim ke Customer (Baru saja)
+                </span>
+            </button>
         `;
     }
 }
